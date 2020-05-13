@@ -1087,7 +1087,14 @@ def run_onnxruntime_tests(args, source_dir, ctest_path, build_dir, configs,
             if args.ctest_label_regex is not None:
                 ctest_cmd += ["--label-regex", args.ctest_label_regex]
 
-            run_subprocess(ctest_cmd, cwd=cwd, dll_path=dll_path)
+            #run_subprocess(ctest_cmd, cwd=cwd, dll_path=dll_path)
+            bin_dir = os.path.join(cwd, config)
+            run_subprocess(
+                        [os.path.join(bin_dir, 'onnxruntime_mlas_test')],
+                        cwd=bin_dir)
+            run_subprocess(
+                        [os.path.join(bin_dir, 'onnxruntime_test_all')],
+                        cwd=bin_dir)
 
         if args.enable_pybind:
             # Disable python tests for TensorRT because many tests are

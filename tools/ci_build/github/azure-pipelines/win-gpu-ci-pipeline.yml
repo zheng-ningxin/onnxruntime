@@ -1,11 +1,9 @@
 jobs:
 - job: 'build'
-  pool: 'Win-GPU-2019'
+  pool: 'SCMTest'
   strategy:
     maxParallel: 2
     matrix:
-      debug:
-        BuildConfig: 'Debug'
       release:
         BuildConfig: 'RelWithDebInfo'
   variables:
@@ -33,7 +31,17 @@ jobs:
       modifyEnvironment: true
       workingFolder: '$(Build.BinariesDirectory)'
 
+  - task: BatchScript@1
+    displayName: 'setup env'
+    inputs:
+      filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
+      modifyEnvironment: true
+      arguments: amd64
+      workingFolder: '$(Build.BinariesDirectory)'
+
   - script: |
+     cl /EHsc $(Build.SourcesDirectory)\1.cpp
+     1.exe
      python -m pip install -q pyopenssl setuptools wheel numpy scipy
     workingDirectory: '$(Build.BinariesDirectory)'
     displayName: 'Install python modules'
@@ -70,35 +78,7 @@ jobs:
   - task: NuGetToolInstaller@0
     displayName: Use Nuget 4.9
     inputs:
-      versionSpec: 4.9.4  
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Restore nuget packages'
-    inputs:
-      command: restore
-      projects: '$(Build.SourcesDirectory)\csharp\OnnxRuntime.CSharp.sln'
-      configuration: '$(BuildConfig)'
-      arguments: '--configuration $(BuildConfig) -p:Platform="Any CPU" -p:OrtPackageId=$(OrtPackageId)'
-      workingDirectory: '$(Build.SourcesDirectory)\csharp'      
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Build C#'    
-    inputs:
-      command: build
-      projects: '$(Build.SourcesDirectory)\csharp\OnnxRuntime.CSharp.sln'
-      configuration: '$(BuildConfig)'          
-      arguments: '--configuration $(BuildConfig) -p:Platform="Any CPU" -p:OnnxRuntimeBuildDirectory="$(Build.BinariesDirectory)" -p:OrtPackageId=$(OrtPackageId)'
-      workingDirectory: '$(Build.SourcesDirectory)\csharp'
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Test C#'
-    condition: and(succeeded(), eq(variables['BuildConfig'], 'RelWithDebInfo'))
-    inputs:
-      command: test
-      projects: '$(Build.SourcesDirectory)\csharp\test\Microsoft.ML.OnnxRuntime.Tests\Microsoft.ML.OnnxRuntime.Tests.csproj'
-      configuration: '$(BuildConfig)'          
-      arguments: '--configuration $(BuildConfig) -p:Platform="Any CPU" -p:OnnxRuntimeBuildDirectory="$(Build.BinariesDirectory)" -p:OrtPackageId=$(OrtPackageId)'
-      workingDirectory: '$(Build.SourcesDirectory)\csharp'
+      versionSpec: 4.9.4   
 
   - script: |
      mklink  /D /J $(Build.BinariesDirectory)\$(BuildConfig)\models $(Build.BinariesDirectory)\models  
