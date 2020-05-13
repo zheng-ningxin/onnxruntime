@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 120
+; ignore =
+;     E226,  # missing whitespace around arithmetic operator
+;     E231,  # missing whitespace after...
+;     E241,  # multiple spaces after ','
+;     E261,  # at least two spaces before inline comment
+;     E262,  # inline comment should start with '# '
+;     E265,  # block comment should start with '# '
+;     E302,  # expected 2 blank lines, found 1
+;     E305,  # expected 2 blank lines after class or function definition, found 1
+per-file-ignores =
+    __init__.py:F401

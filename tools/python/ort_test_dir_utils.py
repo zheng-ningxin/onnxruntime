@@ -177,7 +177,7 @@ def run_test_dir(model_or_dir):
         models = glob.glob(os.path.join(model_dir, '*.onnx'))
         if len(models) > 1:
             raise ValueError(f"'Multiple .onnx files found in {model_dir}. '"
-                              "'Please provide specific .onnx file as input.")
+                             "'Please provide specific .onnx file as input.")
         elif len(models) == 0:
             raise ValueError(f"'No .onnx files found in {model_dir}.")
 
