@@ -82,7 +82,7 @@ def create_test_dir(model_path, root_path, test_name,
     model_path = os.path.abspath(model_path)
     root_path = os.path.abspath(root_path)
     test_dir = os.path.join(root_path, test_name)
-    test_data_dir = os.path.join(test_dir, f"test_data_set_0")
+    test_data_dir = os.path.join(test_dir, "test_data_set_0")
 
     if not os.path.exists(test_dir) or not os.path.exists(test_data_dir):
         os.makedirs(test_data_dir)
