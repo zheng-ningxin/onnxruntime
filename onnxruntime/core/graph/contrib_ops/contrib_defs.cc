@@ -2652,6 +2652,43 @@ It's an extension of Gelu. It takes the sum of input A and bias input B as the i
             }
         });
 
+  //FaceDetectPostProcess
+  ONNX_CONTRIB_OPERATOR_SCHEMA(FaceDetectPostProcess)
+      .SetDomain(kMSDomain)
+      .SinceVersion(1)
+      .Attr("score_threshold", "Number of attention heads", AttributeProto::FLOAT)
+      .Input(
+          0,
+          "delta",
+          "Input data tensor from the previous operator; shape [1,hight,width,16].",
+          "tensor(float)")
+      .Input(
+          1,
+          "landmark_delta",
+          "shape [1,hight,width,40].",
+          "tensor(float)")
+      .Input(
+          2,
+          "score",
+          "score list, shape [1,hight,width,4].",
+          "tensor(float)")
+      .Output(
+          0,
+          "boxes",
+          "boxes, shape [count,4], could change to [1, count,4].",
+          "tensor(float)")
+      .Output(
+          1,
+          "scores",
+          "shape [count], could change to [1, 1, count].",
+          "tensor(float)")
+      .Output(
+          2,
+          "landmarks",
+          "shape [count, 10].",
+          "tensor(float)")
+      .SetDoc(R"DOC(Read_Response for face detection.009 model.)DOC");
+
   RegisterBertSchemas();
 }
 }  // namespace contrib
