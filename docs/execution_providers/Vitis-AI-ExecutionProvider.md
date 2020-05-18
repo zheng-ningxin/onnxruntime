@@ -70,3 +70,7 @@ The following table lists system requirements for running docker containers as w
 
 ### Samples
 TODO
+
+### Github Issues
+
+Please assign to [edelaye](https://github.com/edelaye) if the issue involves the Vitis-AI execution provider.
