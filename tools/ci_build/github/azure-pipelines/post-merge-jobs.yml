@@ -7,9 +7,11 @@ jobs:
   steps:
     - task: CmdLine@2
       inputs:
-        script: |          
+        script: |
+          ln -s /data/models .
           LLVM_PROFILE_FILE="%p.profraw" CFLAGS="-g -fprofile-instr-generate -fcoverage-mapping" CXXFLAGS="-g -fprofile-instr-generate -fcoverage-mapping" CC=clang CXX=clang++  python3 $(Build.SourcesDirectory)/tools/ci_build/build.py --build_dir=$(Build.BinariesDirectory) --config Debug --parallel --skip_submodule_sync --build_shared_lib --enable_onnx_tests
-          LLVM_PROFILE_FILE="testrunner.profraw" ./onnx_test_runner /data/models
+          cd Debug
+          LLVM_PROFILE_FILE="testrunner.profraw" onnx_test_runner /data/models
           llvm-profdata merge -sparse  -o ort.profdata *.profraw
           llvm-cov report -instr-profile=ort.profdata onnx_test_runner -object onnxruntime_test_all  $(Build.SourcesDirectory)/include/onnxruntime $(Build.SourcesDirectory)/onnxruntime/core $(Build.SourcesDirectory)/onnxruntime/contrib_ops
         workingDirectory: $(Build.BinariesDirectory)
