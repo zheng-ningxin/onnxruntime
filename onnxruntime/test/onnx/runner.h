@@ -52,7 +52,7 @@ class DataRunner {
   DataRunner(OrtSession* session1, const std::string& test_case_name1, const ITestCase& c,
              TestCaseCallBack on_finished1);
   virtual void OnTaskFinished(size_t task_id, EXECUTE_RESULT res, ORT_CALLBACK_INSTANCE pci) noexcept = 0;
-  void RunTask(size_t task_id, ORT_CALLBACK_INSTANCE pci, bool store_result);
+  void RunTask(size_t task_id, ORT_CALLBACK_INSTANCE pci);
   virtual ~DataRunner();
 
   virtual void Start(ORT_CALLBACK_INSTANCE pci, size_t concurrent_runs) = 0;

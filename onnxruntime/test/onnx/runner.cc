@@ -102,7 +102,7 @@ void ORT_CALLBACK RunSingleDataItem(ORT_CALLBACK_INSTANCE instance, void* contex
   PTestRunner* env = task->env;
   const size_t task_id = task->task_id;
   delete task;
-  env->RunTask(task_id, instance, true);
+  env->RunTask(task_id, instance);
 }
 
 Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::shared_ptr<TestCaseResult> result) {
@@ -118,8 +118,9 @@ Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::sh
       Status st = CreateAndSubmitThreadpoolWork(RunTestCase, t.get(), task->pool);
       if (st.IsOK()) {
         t.release();
-      } else
+      } else {
         return st;
+      }
     }
   }
 
@@ -314,7 +315,7 @@ DataRunner::~DataRunner() {
   Ort::GetApi().ReleaseSession(session);
 }
 
-void DataRunner::RunTask(size_t task_id, ORT_CALLBACK_INSTANCE pci, bool store_result) {
+void DataRunner::RunTask(size_t task_id, ORT_CALLBACK_INSTANCE pci) {
   EXECUTE_RESULT res = EXECUTE_RESULT::UNKNOWN_ERROR;
   try {
     res = RunTaskImpl(task_id);
@@ -322,9 +323,8 @@ void DataRunner::RunTask(size_t task_id, ORT_CALLBACK_INSTANCE pci, bool store_r
     res = EXECUTE_RESULT::WITH_EXCEPTION;
     LOGS_DEFAULT(ERROR) << c_.GetTestCaseName() << ":" << ex.what();
   }
-  if (store_result) {
-    result->SetResult(task_id, res);
-  }
+
+  result->SetResult(task_id, res);
   OnTaskFinished(task_id, res, pci);
 }
 
@@ -366,8 +366,8 @@ EXECUTE_RESULT DataRunner::RunTaskImpl(size_t task_id) {
     }
     GetMonotonicTimeCounter(&start_time);
     Ort::ThrowOnError(Ort::GetApi().Run(session, nullptr, input_names.data(), input_values.Data(),
-                                        static_cast<size_t>(input_values.Length()), output_names_raw_ptr.data(), output_count,
-                                        output_values.Data()));
+                                        static_cast<size_t>(input_values.Length()), output_names_raw_ptr.data(),
+                                        output_count, output_values.Data()));
   }
   GetMonotonicTimeCounter(&end_time);
   AccumulateTimeSpec(&spent_time_, &start_time, &end_time);
@@ -473,10 +473,12 @@ EXECUTE_RESULT DataRunner::RunTaskImpl(size_t task_id) {
 
 void SeqTestRunner::Start(ORT_CALLBACK_INSTANCE pci, size_t) {
   const size_t data_count = c_.GetDataCount();
-  for (size_t idx_repeat = 0; idx_repeat != repeat_count_; ++idx_repeat)
+  for (size_t idx_repeat = 0; idx_repeat != repeat_count_; ++idx_repeat) {
     for (size_t idx_data = 0; idx_data != data_count; ++idx_data) {
-      RunTask(idx_data, nullptr, idx_repeat == 0);
+      RunTask(idx_data, nullptr);
     }
+  }
+
   Finish(pci);
 }
 
@@ -493,8 +495,10 @@ void RunSingleTestCase(const ITestCase& info, Ort::Env& env, const Ort::SessionO
     Ort::Session session_object{env, info.GetModelUrl(), sf2};
     LOGF_DEFAULT(INFO, "testing %s\n", info.GetTestCaseName().c_str());
     //temp hack. Because we have no resource control. We may not have enough memory to run this test in parallel
-    if (info.GetTestCaseName() == "coreml_FNS-Candy_ImageNet")
+    if (info.GetTestCaseName() == "coreml_FNS-Candy_ImageNet") {
       concurrent_runs = 1;
+    }
+
     if (concurrent_runs > 1 && data_count > 1) {
       r.reset(new PTestRunner(session_object.release(), info, tpool, on_finished));
     } else {
@@ -507,8 +511,9 @@ void RunSingleTestCase(const ITestCase& info, Ort::Env& env, const Ort::SessionO
     r.release();
     return;
   } catch (const Ort::Exception& ex) {
-    if (ex.GetOrtErrorCode() != ORT_NOT_IMPLEMENTED)
+    if (ex.GetOrtErrorCode() != ORT_NOT_IMPLEMENTED) {
       throw;
+    }
 
     LOGF_DEFAULT(ERROR, "Test %s failed:%s", info.GetTestCaseName().c_str(), ex.what());
     std::string node_name;
