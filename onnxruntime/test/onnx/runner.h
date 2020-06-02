@@ -15,7 +15,8 @@
 #include "testenv.h"
 #include "sync_api.h"
 
-typedef std::function<onnxruntime::common::Status(std::shared_ptr<TestCaseResult> result, ORT_CALLBACK_INSTANCE pci)> TestCaseCallBack;
+typedef std::function<onnxruntime::common::Status(std::shared_ptr<TestCaseResult> result, ORT_CALLBACK_INSTANCE pci)>
+    TestCaseCallBack;
 
 struct TestCaseTask {
   TestEnv& env;
@@ -28,7 +29,8 @@ struct TestCaseTask {
 
 void ORT_CALLBACK RunTestCase(ORT_CALLBACK_INSTANCE instance, void* context, ORT_WORK work);
 void ORT_CALLBACK RunSingleDataItem(ORT_CALLBACK_INSTANCE instance, void* context, ORT_WORK work);
-onnxruntime::common::Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::shared_ptr<TestCaseResult> result);
+::onnxruntime::common::Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task,
+                                                 std::shared_ptr<TestCaseResult> result);
 
 struct MockedOrtAllocator;
 
@@ -39,7 +41,7 @@ class DataRunner {
   std::string test_case_name_;
   const ITestCase& c_;
   //Time spent in Session::Run. It only make sense when SeqTestRunner was used
-  onnxruntime::TIME_SPEC spent_time_;
+  ::onnxruntime::TIME_SPEC spent_time_;
 
  private:
   OrtSession* session;

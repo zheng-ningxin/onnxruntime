@@ -114,7 +114,8 @@ Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::sh
     int next_test = env.next_test_to_run++;
     if (static_cast<size_t>(next_test) < env.tests.size()) {
       //schedule the next TestCase
-      std::unique_ptr<TestCaseTask> t(new TestCaseTask{env, next_test, task->concurrent_runs, task->repeat_count, task->pool});
+      std::unique_ptr<TestCaseTask> t(new TestCaseTask{env, next_test, task->concurrent_runs, task->repeat_count,
+                                                       task->pool});
       Status st = CreateAndSubmitThreadpoolWork(RunTestCase, t.get(), task->pool);
       if (st.IsOK()) {
         t.release();
@@ -126,13 +127,14 @@ Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::sh
 
   FixedCountFinishCallback& finished = *task->env.finished;
   if (failed)
-    return finished.fail(pci);
+    return finished.Fail(pci);
 
-  return finished.onFinished(task_id, result, pci);
+  return finished.OnFinished(task_id, result, pci);
 }
 
 //Do not run this function in the thread pool passed in
-static Status ParallelRunTests(TestEnv& env, int p_models, size_t current_runs, size_t repeat_count, PThreadPool pool) {
+static Status ParallelRunTests(TestEnv& env, int p_models, size_t current_runs, size_t repeat_count,
+                               PThreadPool pool) {
   p_models = static_cast<int>(std::min<size_t>(p_models, env.tests.size()));
   LOGF_DEFAULT(ERROR, "Running tests in parallel: at most %d models at any time", p_models);
   env.next_test_to_run = p_models;
@@ -149,7 +151,7 @@ static Status ParallelRunTests(TestEnv& env, int p_models, size_t current_runs, 
       throw;
     }
   }
-  bool ret = env.finished->wait();
+  bool ret = env.finished->Wait();
   if (!ret) {
     return Status(::onnxruntime::common::ONNXRUNTIME, ::onnxruntime::common::FAIL, "ParallelRunTests failed");
   }
@@ -165,6 +167,7 @@ Status RunTests(TestEnv& env, int p_models, int concurrent_runs, size_t repeat_c
                                                  return info->GetDataCount() + v;
                                                });
   std::vector<std::shared_ptr<TestCaseResult>> results;
+
   if (p_models > 1 && env.tests.size() > 1) {
     ORT_RETURN_IF_ERROR(ParallelRunTests(env, p_models, concurrent_runs, repeat_count, tpool));
     results = env.finished->getResults();
@@ -175,10 +178,12 @@ Status RunTests(TestEnv& env, int p_models, int concurrent_runs, size_t repeat_c
       ORT_EVENT ev;
       ORT_RETURN_IF_ERROR(CreateOnnxRuntimeEvent(&ev));
       try {
-        RunSingleTestCase(env.tests[i], env.env, env.sf, concurrent_runs, repeat_count, tpool, nullptr, [&results, ev](std::shared_ptr<TestCaseResult> result, ORT_CALLBACK_INSTANCE pci) {
-          results.push_back(result);
-          return OnnxRuntimeSetEventWhenCallbackReturns(pci, ev);
-        });
+        RunSingleTestCase(*env.tests[i], env.env, env.sf, concurrent_runs, repeat_count, tpool, nullptr,
+                          [&results, ev](std::shared_ptr<TestCaseResult> result, ORT_CALLBACK_INSTANCE pci) {
+                            results.push_back(result);
+                            return OnnxRuntimeSetEventWhenCallbackReturns(pci, ev);
+                          });
+
         ORT_RETURN_IF_ERROR(WaitAndCloseEvent(ev));
       } catch (std::exception& ex) {
         LOGF_DEFAULT(ERROR, "Test %s failed:%s", test_case_name, ex.what());
@@ -191,13 +196,15 @@ Status RunTests(TestEnv& env, int p_models, int concurrent_runs, size_t repeat_c
   }
   for (size_t i = 0; i != env.tests.size(); ++i) {
     if (!results[i]) {
-      stat.AddFailedTest(std::pair<std::string, std::string>(env.tests[i]->GetTestCaseName(), env.tests[i]->GetTestCaseVersion()));
+      stat.AddFailedTest(std::pair<std::string, std::string>(env.tests[i]->GetTestCaseName(),
+                                                             env.tests[i]->GetTestCaseVersion()));
       continue;
     }
     const TestCaseResult& r = *results[i];
     for (const EXECUTE_RESULT res : r.GetExcutionResult()) {
       if (res != EXECUTE_RESULT::SUCCESS && res != EXECUTE_RESULT::NOT_SUPPORT) {
-        stat.AddFailedTest(std::pair<std::string, std::string>(env.tests[i]->GetTestCaseName(), env.tests[i]->GetTestCaseVersion()));
+        stat.AddFailedTest(std::pair<std::string, std::string>(env.tests[i]->GetTestCaseName(),
+                                                               env.tests[i]->GetTestCaseVersion()));
       }
       switch (res) {
         case EXECUTE_RESULT::SUCCESS:
@@ -296,7 +303,7 @@ DataRunner::DataRunner(OrtSession* session1, const std::string& test_case_name1,
       on_finished(on_finished1),
       default_allocator(onnxruntime::make_unique<MockedOrtAllocator>()) {
   std::string s = c_.GetNodeName();
-  result = std::make_shared<TestCaseResult>(c_.GetDataCount(), EXECUTE_RESULT::UNKNOWN_ERROR, s);
+  result = std::make_shared<TestCaseResult>(c_.GetDataCount(), EXECUTE_RESULT::NOT_SET, s);
   SetTimeSpecToZero(&spent_time_);
 }
 

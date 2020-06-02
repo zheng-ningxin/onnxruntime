@@ -87,7 +87,9 @@ struct PerformanceResult {
       output_stats(std::cout);
     }
 
-    if (have_file) outfile.close();
+    if (have_file) {
+      outfile.close();
+    }
   }
 };
 

@@ -199,7 +199,7 @@ PerformanceRunner::PerformanceRunner(Ort::Env& env, const PerformanceTestConfig&
     : performance_test_config_(test_config),
       test_model_info_(std::move(CreateModelInfo(test_config))) {
   session_create_start_ = std::chrono::high_resolution_clock::now();
-  session_ = CreateSession(env, rd, test_config, *test_model_info_);
+  session_.reset(CreateSession(env, rd, test_config, test_model_info_));
   session_create_end_ = std::chrono::high_resolution_clock::now();
 }
 
@@ -220,8 +220,7 @@ bool PerformanceRunner::Initialize() {
   std::string narrow_model_name = ToMBString(model_name);
   performance_result_.model_name = narrow_model_name;
 
-  // ownership semantics are a little weird here as the test case takes ownership of the model info
-  // TODO: Resolve with usage of ITestCase in onnx_test_runner so that ownership is a bit cleaner.
+  // ownership semantics are a little unexpected here as the test case takes ownership of the model info
   TestModelInfo* test_model_info = test_model_info_.get();
   test_case_ = std::move(CreateOnnxTestCase(narrow_model_name, std::move(test_model_info_), 0.0, 0.0));
 
