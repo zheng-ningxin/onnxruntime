@@ -199,7 +199,7 @@ PerformanceRunner::PerformanceRunner(Ort::Env& env, const PerformanceTestConfig&
     : performance_test_config_(test_config),
       test_model_info_(std::move(CreateModelInfo(test_config))) {
   session_create_start_ = std::chrono::high_resolution_clock::now();
-  session_.reset(CreateSession(env, rd, test_config, test_model_info_));
+  session_ = CreateSession(env, rd, test_config, *test_model_info_);
   session_create_end_ = std::chrono::high_resolution_clock::now();
 }
 
