@@ -38,16 +38,14 @@ void ORT_CALLBACK RunTestCase(ORT_CALLBACK_INSTANCE pci, void* context, ORT_WORK
                       [task](std::shared_ptr<TestCaseResult> result, ORT_CALLBACK_INSTANCE pci) {
                         return OnTestCaseFinished(pci, task, result);
                       });
-    return;
   } catch (std::exception& ex) {
     LOGF_DEFAULT(ERROR, "Test %s failed:%s", info.GetTestCaseName().c_str(), ex.what());
-    std::string node_name = info.GetNodeName();
-    ret = std::make_shared<TestCaseResult>(info.GetDataCount(), EXECUTE_RESULT::WITH_EXCEPTION, node_name);
-  }
-  auto status = OnTestCaseFinished(pci, task, ret);
-  if (!status.IsOK()) {
-    LOGF_DEFAULT(ERROR, "FATAL ERROR");
-    abort();
+
+    ret = std::make_shared<TestCaseResult>(info.GetDataCount(), EXECUTE_RESULT::WITH_EXCEPTION, info.GetNodeName());
+    auto status = OnTestCaseFinished(pci, task, ret);
+    if (!status.IsOK()) {
+      ORT_THROW("OnTestCaseFinished failed: ", status.ErrorMessage());
+    }
   }
 }
 
@@ -108,28 +106,24 @@ void ORT_CALLBACK RunSingleDataItem(ORT_CALLBACK_INSTANCE instance, void* contex
 Status OnTestCaseFinished(ORT_CALLBACK_INSTANCE pci, TestCaseTask* task, std::shared_ptr<TestCaseResult> result) {
   auto task_id = task->task_id;
   bool failed = false;
-  {
-    std::unique_ptr<TestCaseTask> unused(task);
-    TestEnv& env = task->env;
-    int next_test = env.next_test_to_run++;
-    if (static_cast<size_t>(next_test) < env.tests.size()) {
-      //schedule the next TestCase
-      std::unique_ptr<TestCaseTask> t(new TestCaseTask{env, next_test, task->concurrent_runs, task->repeat_count,
-                                                       task->pool});
-      Status st = CreateAndSubmitThreadpoolWork(RunTestCase, t.get(), task->pool);
-      if (st.IsOK()) {
-        t.release();
-      } else {
-        return st;
-      }
+
+  std::unique_ptr<TestCaseTask> delete_finished_task(task);
+
+  TestEnv& env = task->env;
+  int next_test = env.next_test_to_run++;
+  if (static_cast<size_t>(next_test) < env.tests.size()) {
+    //schedule the next TestCase
+    std::unique_ptr<TestCaseTask> t(new TestCaseTask{env, next_test, task->concurrent_runs, task->repeat_count,
+                                                     task->pool});
+    Status st = CreateAndSubmitThreadpoolWork(RunTestCase, t.get(), task->pool);
+    if (st.IsOK()) {
+      t.release();
+    } else {
+      return st;
     }
   }
 
-  FixedCountFinishCallback& finished = *task->env.finished;
-  if (failed)
-    return finished.Fail(pci);
-
-  return finished.OnFinished(task_id, result, pci);
+  return failed ? env.finished->Fail(pci) : env.finished->OnFinished(task_id, result, pci);
 }
 
 //Do not run this function in the thread pool passed in
