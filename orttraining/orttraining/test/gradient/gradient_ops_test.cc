@@ -185,6 +185,27 @@ void TestBroadcastableBinaryOpGrad(const std::string& op_type,
     gradient_checker.ComputeGradientError(op_def, {A_info, B_info}, {Y_info}, &max_error);
     EXPECT_IS_TINY(max_error);
   }
+
+  // symbolic broadcast
+  // shape(A) = (4, 2, 1, "seq(3)"), shape(B) = (4, 2, 1, 1), ==> shape(result) = (4, 2, 1, 3)
+  {
+    TensorInfo A_info{{4, 2, 1, 3}, true, transformer, DataTypeImpl::GetTensorType<float>(), {"4", "2", "1", "seq"}};
+    TensorInfo B_info{{4, 2, 1, 1}, true, transformer, DataTypeImpl::GetTensorType<float>(), {"4", "2", "1", "1"}};
+    TensorInfo Y_info{{4, 2, 1, 3}};
+
+    gradient_checker.ComputeGradientError(op_def, {A_info, B_info}, {Y_info}, &max_error);
+    EXPECT_IS_TINY(max_error);
+  }
+  // symbolic broadcast + numeric broadcast
+  // shape(A) = ("batch(4)", 2, "seq(3)", "seq(3)"), shape(B) = ("batch(4)", 1, "seq(3)", "seq(3)"), ==> shape(result) = (4, 2, 3, 3)
+  {
+    TensorInfo A_info{{4, 2, 3, 3}, true, transformer, DataTypeImpl::GetTensorType<float>(), {"batch", "2", "seq", "seq"}};
+    TensorInfo B_info{{4, 1, 1, 3}, true, transformer, DataTypeImpl::GetTensorType<float>(), {"batch", "1", "1", "seq"}};
+    TensorInfo Y_info{{4, 2, 3, 3}};
+
+    gradient_checker.ComputeGradientError(op_def, {A_info, B_info}, {Y_info}, &max_error);
+    EXPECT_IS_TINY(max_error);
+  }
 }
 
 TEST(GradientCheckerTest, AddGrad) {
@@ -1471,7 +1492,11 @@ void TestDropoutGradOp(float ratio, TensorShape& x_shape, bool default_ratio = t
                                                   true, false, true, false});
   if (!default_ratio) {
     test.AddInput<float>("ratio", {1}, ratio_data);
+  } else {
+    test.AddMissingOptionalInput<float>();
   }
+
+  test.AddInput("training_mode", {}, {true});
 
   test.AddOutput<float>("dx", x_shape.GetDims(), dx_data);
 
