@@ -38,10 +38,8 @@ namespace utils {
 void* DefaultAlloc(size_t size);
 void DefaultFree(void* p);
 
-AllocatorPtr GetAllocator(const SessionState& session_state, const OrtMemoryInfo& memory_info);
-
-common::Status AllocateHelper(const IExecutionProvider& execution_provider, int device_id, const Tensor& fetched_tensor,
-                              OrtValue& output_mlvalue);
+common::Status AllocateHelper(const IExecutionProvider& execution_provider, int device_id,
+                              const Tensor& fetched_tensor, OrtValue& output_mlvalue);
 
 const std::string& GetNodeInputProviderType(const SessionState::NodeInfo& info);
 

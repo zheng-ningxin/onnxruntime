@@ -52,7 +52,7 @@ struct FeedsFetchesInfo {
 struct MLValueCopyInfo {
   OrtDevice source_device{};
   OrtDevice target_device{};
-  const IExecutionProvider* allocation_provider{nullptr};
+  AllocatorPtr allocator;  // allocator for target device
 };
 
 class FeedsFetchesManager {
