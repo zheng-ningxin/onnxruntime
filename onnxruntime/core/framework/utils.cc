@@ -101,8 +101,8 @@ bool ProviderIsCpuBased(const std::string& provider_type) {
          provider_type == onnxruntime::kRknpuExecutionProvider;
 }
 
-common::Status AllocateHelper(const AllocatorPtr& allocator,
-                              const Tensor& fetched_tensor, OrtValue& output_mlvalue) {
+static common::Status AllocateHelper(const AllocatorPtr& allocator,
+                                     const Tensor& fetched_tensor, OrtValue& output_mlvalue) {
   if (!allocator) {
     return Status(common::ONNXRUNTIME, common::FAIL, "invalid allocator");
   }

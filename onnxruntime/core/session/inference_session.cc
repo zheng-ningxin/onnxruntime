@@ -747,7 +747,6 @@ common::Status InferenceSession::InitializeSubgraphSessions(Graph& graph, Sessio
 
       subgraph_session_state->SetupGraphInfo();
 
-      const auto implicit_inputs = node.ImplicitInputDefs();
       ORT_RETURN_IF_ERROR_SESSIONID_(CreateSessionPlan(*subgraph_session_state, model_location_,
                                                        kernel_registry_manager_, &node,
                                                        session_options_.execution_mode));
