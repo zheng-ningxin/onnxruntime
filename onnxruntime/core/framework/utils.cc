@@ -309,9 +309,6 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
   ORT_ENFORCE(fetch_alloc_info.size() == copy_info.size());
   bool copy_needed = false;
 
-  auto& execution_providers = session_state.GetExecutionProviders();
-  OrtMemoryInfo default_cpu_memory_info = execution_providers.GetDefaultCpuMemoryInfo();
-
   auto num_outputs = fetch_alloc_info.size();
   for (size_t i = 0; i < num_outputs; ++i) {
     const OrtMemoryInfo* alloc_info = fetch_alloc_info[i];
