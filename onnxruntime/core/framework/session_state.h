@@ -300,10 +300,17 @@ class SessionState {
 
   // using std::map as OrtMemoryInfo would need a custom hash function to be used with std::unordered_map,
   // and as this isn't considered performance critical currently it's not worth the maintenance overhead of adding one.
-  // TODO: We do get an allocator from ExecutionFrame so this is looked up frequently, however there won't be many
+  // We do get an allocator from ExecutionFrame so this is looked up frequently, however there most likely aren't many
   // entries in the map
+  //
   // NOTE: We store a delegate to get the allocator to support scenarios such as the CUDA EP where a thread_local
   // allocator is returned.
+  //
+  // TODO: The CUDA EP may not need to use the per-thread allocator for allocations that would use this map
+  // (e.g. primarily from ExecutionFrame and utils::Copy{Inputs|Outputs}AcrossDevices). It does need it
+  // for internal allocations by CUDAExecutionProvider::GetScratchBuffer, but could access the per-thread allocator
+  // directly instead of going through CUDAExecutionProvider::GetAllocator.
+  // If that can be validated we could simply store the AllocatorPtr here and get rid of the delegate.
   std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
            OrtMemoryInfoLessThanIgnoreAllocType>
       allocators_;

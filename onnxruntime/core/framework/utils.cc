@@ -325,7 +325,9 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
 
       if (alloc_info != nullptr) {
         copy_info[i].allocator = session_state.GetAllocator(*alloc_info);
-        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for ", alloc_info);
+        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for ", *alloc_info,
+                    " Source:", copy_info[i].source_device.ToString(),
+                    " Target:", copy_info[i].target_device.ToString());
       } else {
         // TODO: To support a user providing device info for where they want the fetch allocated we would need
         // to update SessionState::GetAllocator to allow matching with just OrtDevice + Id.
