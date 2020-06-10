@@ -319,14 +319,9 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
 
     if (copy_info[i].source_device != copy_info[i].target_device) {
       copy_needed = true;
-
-      if (alloc_info != nullptr) {
-        // we only have alloc_info if the fetch was pre-allocated so no need to set the allocator
-      } else {
-        copy_info[i].allocator = session_state.GetAllocator(copy_info[i].target_device);
-        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for device ",
-                    copy_info[i].target_device.ToString());
-      }
+      copy_info[i].allocator = session_state.GetAllocator(copy_info[i].target_device);
+      ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for device ",
+                  copy_info[i].target_device.ToString());
     }
   }
 

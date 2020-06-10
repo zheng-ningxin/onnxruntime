@@ -56,7 +56,8 @@ AllocatorPtr SessionState::GetAllocator(OrtDevice device, int device_id) const n
   auto entry = std::find_if(allocators_.cbegin(), allocators_.cend(),
                             [device, device_id](const AllocatorEntry& entry) {
                               return entry.first.device == device &&
-                                     entry.first.id == device_id;
+                                     entry.first.id == device_id &&
+                                     entry.first.mem_type == OrtMemTypeDefault;
                             });
 
   if (entry != allocators_.cend()) {
