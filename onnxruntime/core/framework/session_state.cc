@@ -27,13 +27,17 @@ void SessionState::SetupAllocators() {
         LOGS(logger_, ERROR) << MakeString("Allocator already registered for ", allocator->Info(),
                                            ". Ignoring allocator from ", provider->Type());
       } else {
-        allocators_[memory_info] = allocator;
+        // slightly weird indirection to go back to the provider to get the allocator each time it's needed
+        // in order to support scenarios such as the CUDA EP's per-thread allocator.
+        allocators_[memory_info] = [&provider](int id, OrtMemType mem_type) {
+          return provider->GetAllocator(id, mem_type);
+        };
       }
     }
   }
 }
 
-void SessionState::SetupGraphInfo() {
+void SessionState::CreateGraphInfo() {
   graph_viewer_ = onnxruntime::make_unique<onnxruntime::GraphViewer>(graph_);
   // use graph_viewer_ to initialize ort_value_name_idx_map_
   LOGS(logger_, VERBOSE) << "SaveMLValueNameIndexMapping";

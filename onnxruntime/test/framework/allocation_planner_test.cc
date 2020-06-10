@@ -229,7 +229,7 @@ class PlannerTest : public ::testing::Test {
   void CreatePlan(const std::vector<const NodeArg*>& outer_scope_node_args = {}) {
     EXPECT_EQ(graph_.Resolve(), Status::OK());
 
-    state_.SetupGraphInfo();
+    state_.CreateGraphInfo();
 
     std::shared_ptr<KernelRegistry> reg = std::make_shared<KernelRegistry>();
 

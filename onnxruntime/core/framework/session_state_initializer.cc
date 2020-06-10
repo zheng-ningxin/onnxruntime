@@ -41,11 +41,13 @@ static common::Status SaveInputOutputNamesToNodeMapping(const onnxruntime::Graph
                                                         SessionState& session_state,
                                                         const std::vector<const NodeArg*>& implicit_inputs);
 
-Status CreateSessionPlan(SessionState& session_state,
-                         const std::basic_string<PATH_CHAR_TYPE>& graph_location,
-                         KernelRegistryManager& kernel_registry_manager,
-                         _In_opt_ const Node* parent_node,
-                         ExecutionMode execution_mode) {
+Status FinalizeSessionState(SessionState& session_state,
+                            const std::basic_string<PATH_CHAR_TYPE>& graph_location,
+                            KernelRegistryManager& kernel_registry_manager,
+                            _In_opt_ const Node* parent_node,
+                            ExecutionMode execution_mode) {
+  session_state.CreateGraphInfo();
+
   const GraphViewer& graph_viewer = session_state.GetGraphViewer();
   const auto& logger = session_state.Logger();
 
@@ -73,10 +75,8 @@ Status CreateSessionPlan(SessionState& session_state,
                                                     session_state.GetExecutionProviders(), kernel_registry_manager,
                                                     ort_value_name_idx_map, context, exec_plan));
 
+  const auto* exec_plan_ptr = exec_plan.get();
   session_state.SetExecutionPlan(std::move(exec_plan));
-
-  const auto* exec_plan_ptr = session_state.GetExecutionPlan();
-  ORT_ENFORCE(exec_plan_ptr, "Execution plan was not found in SessionState. CreatePlan must be called first.");
 
   std::unique_ptr<ITensorAllocator> tensor_allocator_(
       ITensorAllocator::Create(session_state.GetEnableMemoryPattern(), *exec_plan_ptr, session_state,

@@ -42,11 +42,17 @@ struct MemoryPatternGroup;
  * It is supposed to be passed by const-ref only to all the executors.
  * This class owns all the initializers.
  * Brief usage:
- * SessionState s(...);
- * for(...) s.AddInitializedTensor(...);
- * s.SetGraphAndCreateKernels(...);
+ *   SessionState s(...);
+ *   <process subgraphs to populate subgraph SessionState instances>
+ *   <run transformers or any other graph editing steps>
+ *   for(...) // copy initializers from GraphProto format in Graph to OrtValue format in SessionState
+        s.AddInitializedTensor(...);
+ *   s.CleanInitializedTensorsFromGraph(); // remove GraphProto instances from Graph if not needed
+ * 
+ *   s.CreateGraphInfo();
+ *   s.CreateKernels(...);
  * Then you can use:
- * s.GetKernel(...);
+ *   s.GetKernel(...);
  */
 class SessionState {
  public:
@@ -69,10 +75,11 @@ class SessionState {
     SetupAllocators();
   }
 
-  // Setup graph info and the graph viewer. Call once all graph modifications like transforms are completed.
-  void SetupGraphInfo();
+  // Populate OrtValueNameIdxMap and create the graph viewer.
+  // Call once all graph modifications like transforms are completed.
+  void CreateGraphInfo();
 
-  // Call CreateKernels once all the graph transforms are done
+  // Call CreateKernels after CreateGraphInfo
   Status CreateKernels(const KernelRegistryManager& custom_registry_manager);
 
   ~SessionState() {
@@ -84,7 +91,7 @@ class SessionState {
     }
   }
 
-  // Graph viewer. SetupGraphInfo must have been called previously.
+  // Graph viewer. CreateGraphInfo must have been called previously.
   const GraphViewer& GetGraphViewer() const noexcept { return *graph_viewer_.get(); };
 
   // kernels
@@ -102,7 +109,7 @@ class SessionState {
 
   AllocatorPtr GetAllocator(const OrtMemoryInfo& location) const noexcept {
     auto entry = allocators_.find(location);
-    return entry != allocators_.cend() ? entry->second : nullptr;
+    return entry != allocators_.cend() ? entry->second(location.id, location.mem_type) : nullptr;
   }
 
   const OrtValueNameIdxMap& GetOrtValueNameIdxMap() const noexcept { return ort_value_name_idx_map_; }
@@ -295,7 +302,11 @@ class SessionState {
   // and as this isn't considered performance critical currently it's not worth the maintenance overhead of adding one.
   // TODO: We do get an allocator from ExecutionFrame so this is looked up frequently, however there won't be many
   // entries in the map
-  std::map<OrtMemoryInfo, AllocatorPtr, OrtMemoryInfoLessThanIgnoreAllocType> allocators_;
+  // NOTE: We store a delegate to get the allocator to support scenarios such as the CUDA EP where a thread_local
+  // allocator is returned.
+  std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
+           OrtMemoryInfoLessThanIgnoreAllocType>
+      allocators_;
 
   OrtValueNameIdxMap ort_value_name_idx_map_;
 

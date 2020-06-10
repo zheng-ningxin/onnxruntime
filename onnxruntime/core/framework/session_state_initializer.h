@@ -16,10 +16,10 @@ class KernelRegistryManager;
 class Node;
 class SessionState;
 
-Status CreateSessionPlan(SessionState& session_state,
-                         const std::basic_string<PATH_CHAR_TYPE>& graph_loc,
-                         KernelRegistryManager& kernel_registry_manager,
-                         _In_opt_ const Node* parent_node,
-                         ExecutionMode execution_mode = ORT_SEQUENTIAL);
+Status FinalizeSessionState(SessionState& session_state,
+                            const std::basic_string<PATH_CHAR_TYPE>& graph_loc,
+                            KernelRegistryManager& kernel_registry_manager,
+                            _In_opt_ const Node* parent_node,
+                            ExecutionMode execution_mode = ORT_SEQUENTIAL);
 
 }  // namespace onnxruntime

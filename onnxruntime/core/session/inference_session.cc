@@ -309,6 +309,14 @@ common::Status InferenceSession::RegisterExecutionProvider(std::unique_ptr<IExec
     return Status(common::ONNXRUNTIME, common::FAIL, "Received nullptr for exec provider");
   }
 
+  if (is_inited_) {
+    // adding an EP is pointless as the graph as already been partitioned so no nodes will be assigned to
+    // the new EP
+    LOGS(*session_logger_, ERROR) << "Execution providers must be registered before the session is initialized. ";
+    return common::Status(common::ONNXRUNTIME, common::FAIL,
+                          "Execution providers must be registered before the session is initialized.");
+  }
+
   const std::string& provider_type = p_exec_provider->Type();
 
   // DML's memory is not byte addressable and hence mem pattern doesn't work.
@@ -341,6 +349,14 @@ common::Status InferenceSession::RegisterGraphTransformer(
   if (p_graph_transformer == nullptr) {
     return Status(common::ONNXRUNTIME, common::FAIL, "Received nullptr for graph transformer");
   }
+
+  if (is_inited_) {
+    // adding a transformer now is pointless as the graph as already been transformed
+    LOGS(*session_logger_, ERROR) << "Graph transformers must be registered before the session is initialized.";
+    return common::Status(common::ONNXRUNTIME, common::FAIL,
+                          "Graph transformers must be registered before the session is initialized.");
+  }
+
   return graph_transformation_mgr_.Register(std::move(p_graph_transformer), level);
 }
 
@@ -745,11 +761,9 @@ common::Status InferenceSession::InitializeSubgraphSessions(Graph& graph, Sessio
       SessionState* subgraph_session_state = session_state.GetMutableSubgraphSessionState(node.Index(), name);
       ORT_ENFORCE(subgraph_session_state, "CreateSubgraphSessionState should have created an entry earlier.");
 
-      subgraph_session_state->SetupGraphInfo();
-
-      ORT_RETURN_IF_ERROR_SESSIONID_(CreateSessionPlan(*subgraph_session_state, model_location_,
-                                                       kernel_registry_manager_, &node,
-                                                       session_options_.execution_mode));
+      ORT_RETURN_IF_ERROR_SESSIONID_(FinalizeSessionState(*subgraph_session_state, model_location_,
+                                                          kernel_registry_manager_, &node,
+                                                          session_options_.execution_mode));
 
       // LOGS(*session_logger_, VERBOSE) << std::make_pair(subgraph_info.session_state->GetExecutionPlan(),
       //                                                   &*subgraph_info.session_state);
@@ -908,11 +922,8 @@ common::Status InferenceSession::Initialize() {
       }
     }
 
-    // now that we've finished modifying the graph, setup the graph related info in SessionState
-    session_state_->SetupGraphInfo();
-
-    ORT_RETURN_IF_ERROR_SESSIONID_(CreateSessionPlan(*session_state_, model_location_, kernel_registry_manager_,
-                                                     nullptr, session_options_.execution_mode));
+    ORT_RETURN_IF_ERROR_SESSIONID_(FinalizeSessionState(*session_state_, model_location_, kernel_registry_manager_,
+                                                        nullptr, session_options_.execution_mode));
 
     // handle any subgraphs
     ORT_RETURN_IF_ERROR_SESSIONID_(InitializeSubgraphSessions(graph, *session_state_));

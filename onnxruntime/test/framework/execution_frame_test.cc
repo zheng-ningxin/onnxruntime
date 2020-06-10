@@ -57,7 +57,7 @@ TEST_F(ExecutionFrameTest, TensorAllocationTest) {
   SessionState state(graph, execution_providers, true, &tp_, nullptr, dtm,
                      DefaultLoggingManager().DefaultLogger(), profiler);
 
-  state.SetupGraphInfo();
+  state.CreateGraphInfo();
 
   ASSERT_STATUS_OK(state.CreateKernels(kernel_registry_manager));
 
@@ -146,7 +146,7 @@ TEST_F(ExecutionFrameTest, FeedInDataTest) {
   SessionState state(graph, execution_providers, true, &tp_, nullptr, dtm,
                      DefaultLoggingManager().DefaultLogger(), profiler);
 
-  state.SetupGraphInfo();
+  state.CreateGraphInfo();
 
   ASSERT_STATUS_OK(state.CreateKernels(kernel_registry_manager));
 
@@ -206,7 +206,7 @@ TEST_F(ExecutionFrameTest, MemPatternTest) {
   SessionState state(graph, execution_providers, true, &tp_, nullptr, dtm,
                      DefaultLoggingManager().DefaultLogger(), profiler);
 
-  state.SetupGraphInfo();
+  state.CreateGraphInfo();
 
   ASSERT_STATUS_OK(state.CreateKernels(kernel_registry_manager));
 

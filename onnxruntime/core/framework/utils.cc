@@ -310,7 +310,7 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
   bool copy_needed = false;
 
   auto& execution_providers = session_state.GetExecutionProviders();
-  const auto& cpu_execution_provider = *execution_providers.Get(onnxruntime::kCpuExecutionProvider);  // never null
+  OrtMemoryInfo default_cpu_memory_info = execution_providers.GetDefaultCpuMemoryInfo();
 
   auto num_outputs = fetch_alloc_info.size();
   for (size_t i = 0; i < num_outputs; ++i) {
@@ -327,9 +327,12 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
         copy_info[i].allocator = session_state.GetAllocator(*alloc_info);
         ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for ", alloc_info);
       } else {
-        // device id for CPU should always be 0, but just in case use the value from copy_info target_device.Id()
-        copy_info[i].allocator = cpu_execution_provider.GetAllocator(copy_info[i].target_device.Id(),
-                                                                     OrtMemTypeDefault);
+        // TODO: To support a user providing device info for where they want the fetch allocated we would need
+        // to update SessionState::GetAllocator to allow matching with just OrtDevice + Id.
+        // Currently OrtMemoryInfo.name is included in the key lookup and that is generally set to the EP name.
+        //
+        // Default to CPU allocation
+        copy_info[i].allocator = session_state.GetAllocator(default_cpu_memory_info);
         ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find CPU allocator for device ",
                     copy_info[i].target_device.ToString());
       }
