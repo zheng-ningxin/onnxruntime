@@ -37,6 +37,32 @@ void SessionState::SetupAllocators() {
   }
 }
 
+AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location, bool require_name_match = true) const noexcept {
+  auto entry = allocators_.find(location);
+  if (entry != allocators_.cend()) {
+    return entry->second(location.id, location.mem_type);
+  }
+
+  AllocatorPtr result;
+  if (require_name_match == false) {
+    // do lookup ignoring name
+    using AllocatorEntry = std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
+                                    OrtMemoryInfoLessThanIgnoreAllocType>::const_reference;
+
+    auto entry = std::find_if(allocators_.cbegin(), allocators_.cend(),
+                              [&location](const AllocatorEntry& entry) {
+                                return entry.first.device == location.device &&
+                                       entry.first.id == location.id;
+                              });
+
+    if (entry != allocators_.cend()) {
+      result = entry->second(location.id, location.mem_type);
+    }
+  }
+
+  return result;
+}
+
 void SessionState::CreateGraphInfo() {
   graph_viewer_ = onnxruntime::make_unique<onnxruntime::GraphViewer>(graph_);
   // use graph_viewer_ to initialize ort_value_name_idx_map_

@@ -107,10 +107,13 @@ class SessionState {
 
   const ExecutionProviders& GetExecutionProviders() const noexcept { return execution_providers_; }
 
-  AllocatorPtr GetAllocator(const OrtMemoryInfo& location) const noexcept {
-    auto entry = allocators_.find(location);
-    return entry != allocators_.cend() ? entry->second(location.id, location.mem_type) : nullptr;
-  }
+  /**
+  Get the allocator for the given OrtMemoryInfo location
+  @param allow_device_match If false 'location' must match (OrtMemoryInfo::alloc_type is ignored)
+                            If true and 'location' doesn't match, a secondary search is done based on matching
+                            OrtMemoryInfo::device and device id.
+  */
+  AllocatorPtr GetAllocator(const OrtMemoryInfo& location, bool allow_device_match = false) const noexcept;
 
   const OrtValueNameIdxMap& GetOrtValueNameIdxMap() const noexcept { return ort_value_name_idx_map_; }
 

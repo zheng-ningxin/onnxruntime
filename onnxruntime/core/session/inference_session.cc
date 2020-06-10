@@ -1317,6 +1317,10 @@ common::Status InferenceSession::NewIOBinding(std::unique_ptr<IOBinding>* io_bin
 common::Status InferenceSession::Run(const RunOptions& run_options, IOBinding& io_binding) {
   // TODO should Run() call io_binding.SynchronizeInputs() or should it let the callers do it?
   // io_binding.SynchronizeInputs();
+
+  // TODO: Add option to IOBinding to just indicate OrtDevice + device id for outputs. Pass this through
+  // so that the info can be set in FeedsFetchesManager::fetches_device_copy_info_. We can attempt to do the
+  // allocation on the specified device if an allocator is found.
   return Run(run_options, io_binding.GetInputNames(), io_binding.GetInputs(), io_binding.GetOutputNames(),
              &io_binding.GetOutputs());
 }
