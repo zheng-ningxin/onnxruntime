@@ -109,11 +109,11 @@ class SessionState {
 
   /**
   Get the allocator for the given OrtMemoryInfo location
-  @param allow_device_match If false 'location' must match (OrtMemoryInfo::alloc_type is ignored)
-                            If true and 'location' doesn't match, a secondary search is done based on matching
-                            OrtMemoryInfo::device and device id.
   */
-  AllocatorPtr GetAllocator(const OrtMemoryInfo& location, bool allow_device_match = false) const noexcept;
+  AllocatorPtr GetAllocator(const OrtMemoryInfo& location) const noexcept;
+
+  /** Get the allocator for a given OrtDevice. The first allocator that matches will be returned. */
+  AllocatorPtr GetAllocator(OrtDevice device, int device_id = 0) const noexcept;
 
   const OrtValueNameIdxMap& GetOrtValueNameIdxMap() const noexcept { return ort_value_name_idx_map_; }
 

@@ -324,20 +324,10 @@ static bool FinalizeCopyInfoForFetches(const SessionState& session_state,
       copy_needed = true;
 
       if (alloc_info != nullptr) {
-        // NOTE: Currently if alloc_info is not null the info came from a preallocated output and we don't need
-        // to find an allocator. We want to enable a use case where just device info is provided so this should
-        // change soon to not always be the case.
-        // e.g. Model is using CUDA but output shape is dynamic. User may want to keep the output on
-        // CUDA but as the shape is unknown they can't preallocate it.
-
-        // allow name to not match. if IOBinding was used the name in OrtMemoryInfo won't necessarily
-        // match the name used by the EP creating the output.
-        copy_info[i].allocator = session_state.GetAllocator(*alloc_info, /*allow_device_match*/ true);
-        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for ", *alloc_info);
+        // we only have alloc_info if the fetch was pre-allocated so no need to set the allocator
       } else {
-        // Default to CPU allocation
-        copy_info[i].allocator = session_state.GetAllocator(default_cpu_memory_info);
-        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find CPU allocator for device ",
+        copy_info[i].allocator = session_state.GetAllocator(copy_info[i].target_device);
+        ORT_ENFORCE(copy_info[i].allocator != nullptr, "Failed to find allocator for device ",
                     copy_info[i].target_device.ToString());
       }
     }

@@ -51,7 +51,9 @@ struct FeedsFetchesInfo {
 
 struct MLValueCopyInfo {
   OrtDevice source_device{};
-  OrtDevice target_device{};
+  OrtDevice target_device{};  // default is CPU
+  // TODO: Add support for specifying device id. needs to be supported by DataTransferManager::CopyTensor.
+  // int target_device_id{0};
   AllocatorPtr allocator;  // allocator for target device
 };
 

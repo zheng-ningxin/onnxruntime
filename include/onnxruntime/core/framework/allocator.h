@@ -122,7 +122,7 @@ struct OrtMemoryInfo {
          << " id:" << id
          << " OrtMemType:" << mem_type
          << " OrtAllocatorType:" << alloc_type
-         << device.ToString()
+         << " " << device.ToString()
          << "]";
     return ostr.str();
   }

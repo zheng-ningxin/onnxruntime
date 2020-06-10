@@ -37,27 +37,30 @@ void SessionState::SetupAllocators() {
   }
 }
 
-AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location, bool require_name_match) const noexcept {
+AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location) const noexcept {
+  AllocatorPtr result;
   auto entry = allocators_.find(location);
   if (entry != allocators_.cend()) {
-    return entry->second(location.id, location.mem_type);
+    result = entry->second(location.id, location.mem_type);
   }
 
+  return result;
+}
+
+AllocatorPtr SessionState::GetAllocator(OrtDevice device, int device_id) const noexcept {
   AllocatorPtr result;
-  if (require_name_match == false) {
-    // do lookup ignoring name
-    using AllocatorEntry = std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
-                                    OrtMemoryInfoLessThanIgnoreAllocType>::const_reference;
 
-    auto entry = std::find_if(allocators_.cbegin(), allocators_.cend(),
-                              [&location](const AllocatorEntry& entry) {
-                                return entry.first.device == location.device &&
-                                       entry.first.id == location.id;
-                              });
+  using AllocatorEntry = std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
+                                  OrtMemoryInfoLessThanIgnoreAllocType>::const_reference;
 
-    if (entry != allocators_.cend()) {
-      result = entry->second(location.id, location.mem_type);
-    }
+  auto entry = std::find_if(allocators_.cbegin(), allocators_.cend(),
+                            [device, device_id](const AllocatorEntry& entry) {
+                              return entry.first.device == device &&
+                                     entry.first.id == device_id;
+                            });
+
+  if (entry != allocators_.cend()) {
+    result = entry->second(device_id, OrtMemTypeDefault);
   }
 
   return result;
