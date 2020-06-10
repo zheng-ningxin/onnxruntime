@@ -3,7 +3,7 @@ jobs:
   workspace:
     clean: all
   timeoutInMinutes:  60
-  pool: 'Linux-CPU'
+  pool: 'Linux-CPU2'
   steps:
     - template: templates/set-version-number-variables-step.yml
     - template: templates/linux-set-variables-and-download.yml
@@ -270,7 +270,7 @@ jobs:
 - job: Final_Jar_Testing_Linux
   workspace:
     clean: all
-  pool: 'Linux-CPU'
+  pool: 'Linux-CPU2'
   timeoutInMinutes: 60
   dependsOn:
     Jar_Packaging

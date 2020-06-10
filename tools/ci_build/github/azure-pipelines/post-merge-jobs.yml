@@ -3,7 +3,7 @@ jobs:
   workspace:
     clean: all
   timeoutInMinutes:  120
-  pool: 'Linux-CPU'
+  pool: 'Linux-CPU2'
   steps:
     - template: templates/set-version-number-variables-step.yml
 

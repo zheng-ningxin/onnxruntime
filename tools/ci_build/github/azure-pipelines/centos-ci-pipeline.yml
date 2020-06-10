@@ -3,7 +3,7 @@ jobs:
   workspace:
     clean: all
   timeoutInMinutes:  60
-  pool: 'Linux-CPU'
+  pool: 'Linux-CPU2'
   strategy:
     maxParallel: 2
     matrix: 

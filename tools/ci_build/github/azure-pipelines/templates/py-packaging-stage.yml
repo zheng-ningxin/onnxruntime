@@ -71,7 +71,7 @@ stages:
       timeoutInMinutes: 90
       workspace:
         clean: all
-      pool: Linux-CPU
+      pool: Linux-CPU2
       strategy:
         matrix:
           ${{ parameters.python_version_strategy_matrix }}

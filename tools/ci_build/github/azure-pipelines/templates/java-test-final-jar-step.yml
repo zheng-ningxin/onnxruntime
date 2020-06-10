@@ -1,6 +1,6 @@
 parameters:
   WindowsPool: 'Win-CPU-2019'
-  LinuxPool: 'Linux-CPU'
+  LinuxPool: 'Linux-CPU2'
   version: ''
   RunMacOs: 'false'
   artifactName: ''

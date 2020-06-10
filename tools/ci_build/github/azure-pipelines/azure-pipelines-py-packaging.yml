@@ -12,7 +12,7 @@ jobs:
   timeoutInMinutes: 90
   workspace:
     clean: all
-  pool: Linux-CPU
+  pool: Linux-CPU2
   strategy:
     matrix:
       Python35:
@@ -348,7 +348,7 @@ jobs:
   timeoutInMinutes: 60
   workspace:
     clean: all
-  pool: 'Linux-CPU'
+  pool: 'Linux-CPU2'
   strategy:
     matrix:
       Py37:

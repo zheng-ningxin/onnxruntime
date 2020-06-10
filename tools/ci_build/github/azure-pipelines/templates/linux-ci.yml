@@ -1,5 +1,5 @@
 parameters:
-  AgentPool : 'Linux-CPU'
+  AgentPool : 'Linux-CPU2'
   JobName : 'Linux_CI_Dev'
   SubmoduleCheckoutMode: ''
   BuildCommand: 'tools/ci_build/github/linux/run_dockerbuild.sh -o ubuntu16.04 -d cpu -r $(Build.BinariesDirectory) -x "--use_mklml --use_tvm --build_wheel"'
