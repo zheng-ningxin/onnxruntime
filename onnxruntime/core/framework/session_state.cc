@@ -37,7 +37,7 @@ void SessionState::SetupAllocators() {
   }
 }
 
-AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location, bool require_name_match = true) const noexcept {
+AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location, bool require_name_match) const noexcept {
   auto entry = allocators_.find(location);
   if (entry != allocators_.cend()) {
     return entry->second(location.id, location.mem_type);
