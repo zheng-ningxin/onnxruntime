@@ -792,8 +792,9 @@ common::Status TrainingSession::Run(const RunOptions& run_options, IOBinding& io
     for (auto& drop_ratio : dropout_eval_feeds_) {
       OrtValue feed_value;
       // We allocate on CPU first, copy will be taken care off downstream.
-      auto& default_cpu_alloc_info = GetSessionState().GetExecutionProviders().GetDefaultCpuMemoryInfo();
-      auto cpu_allocator = GetSessionState().GetAllocator(default_cpu_alloc_info);
+      const auto& session_state = GetSessionState();
+      auto default_cpu_alloc_info = session_state.GetExecutionProviders().GetDefaultCpuMemoryInfo();
+      auto cpu_allocator = session_state.GetAllocator(default_cpu_alloc_info);
       
       feed_value = onnxruntime::MakeScalarMLValue<float>(cpu_allocator, 0.f, true /*is_1d*/);
       // Bind new feed to graph input.
