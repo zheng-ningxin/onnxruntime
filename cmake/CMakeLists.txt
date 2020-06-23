@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # Minimum CMake required
 cmake_minimum_required(VERSION 3.13)
 cmake_policy(SET CMP0069 NEW)
@@ -865,6 +867,7 @@ if (onnxruntime_USE_DML)
 endif()
 
 if (onnxruntime_ENABLE_TRAINING)
+  message(STATUS "Adding enable training compile options .." ...)
   add_compile_definitions(ENABLE_TRAINING)
   if (onnxruntime_USE_HOROVOD)
     if (WIN32)
