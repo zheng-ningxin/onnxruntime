@@ -163,7 +163,6 @@ TrainingConfigurationResult ConfigureSessionForTraining(
 }
 
 void addObjectMethodsForTraining(py::module& m) {
-  #warning "Compiling addObjectMethodsForTraining to export TrainingParameters, TrainingSession to python module"
   py::class_<TrainingParameters> parameters(m, "TrainingParameters", R"pbdoc(Configuration information for training.)pbdoc");
   parameters.def(py::init())
       .def_readwrite("loss_output_name", &TrainingParameters::loss_output_name)

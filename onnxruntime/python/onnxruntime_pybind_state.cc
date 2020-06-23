@@ -976,10 +976,7 @@ PYBIND11_MODULE(onnxruntime_pybind11_state, m) {
   addObjectMethods(m, env);
 
 #ifdef ENABLE_TRAINING
-#warning "Adding object methods for training to python module"
   addObjectMethodsForTraining(m);
-#else
-#warning "Skipping adding object methods for training to python module"
 #endif  // ENABLE_TRAINING
 
 #ifdef onnxruntime_PYBIND_EXPORT_OPSCHEMA
