@@ -307,7 +307,7 @@ void RunModelWithBindingMatMul(InferenceSession& session_object,
   }
 
   if (output_device) {
-    // output should be allocated on specified device (if no preallocated here)
+    // output should be allocated on specified device (if not preallocated here)
     io_binding->BindOutput("Y", output_ml_value, *output_device);
   } else {
     io_binding->BindOutput("Y", output_ml_value);
