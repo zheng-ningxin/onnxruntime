@@ -22,10 +22,9 @@ void SessionState::SetupAllocators() {
     for (const auto& allocator : provider->GetAllocators()) {
       const OrtMemoryInfo& memory_info = allocator->Info();
       if (allocators_.find(memory_info) != allocators_.end()) {
-        // EPs are ordered by priority so ignore the duplicate but log a message at ERROR level as this shouldn't
-        // happen.
-        LOGS(logger_, ERROR) << MakeString("Allocator already registered for ", allocator->Info(),
-                                           ". Ignoring allocator from ", provider->Type());
+        // EPs are ordered by priority so ignore the duplicate allocator for this memory location.
+        LOGS(logger_, INFO) << "Allocator already registered for " << allocator->Info()
+                            << ". Ignoring allocator from " << provider->Type();
       } else {
         // slightly weird indirection to go back to the provider to get the allocator each time it's needed
         // in order to support scenarios such as the CUDA EP's per-thread allocator.
@@ -47,21 +46,20 @@ AllocatorPtr SessionState::GetAllocator(const OrtMemoryInfo& location) const noe
   return result;
 }
 
-AllocatorPtr SessionState::GetAllocator(OrtDevice device, int device_id) const noexcept {
+AllocatorPtr SessionState::GetAllocator(OrtDevice device) const noexcept {
   AllocatorPtr result;
 
   using AllocatorEntry = std::map<OrtMemoryInfo, std::function<AllocatorPtr(int id, OrtMemType mem_type)>,
                                   OrtMemoryInfoLessThanIgnoreAllocType>::const_reference;
 
   auto entry = std::find_if(allocators_.cbegin(), allocators_.cend(),
-                            [device, device_id](const AllocatorEntry& entry) {
+                            [device](AllocatorEntry& entry) {
                               return entry.first.device == device &&
-                                     entry.first.id == device_id &&
                                      entry.first.mem_type == OrtMemTypeDefault;
                             });
 
   if (entry != allocators_.cend()) {
-    result = entry->second(device_id, OrtMemTypeDefault);
+    result = entry->second(device.Id(), OrtMemTypeDefault);
   }
 
   return result;
@@ -216,8 +214,6 @@ void SessionState::CleanInitializedTensorsFromGraph() {
   graph_.CleanAllInitializedTensors();
 }
 
-profiling::Profiler& SessionState::Profiler() const { return profiler_; }
-
 static int64_t CalculateMemoryPatternsKey(const std::vector<std::reference_wrapper<const TensorShape>>& shapes) {
   int64_t key = 0;
   for (auto shape : shapes) {
@@ -228,16 +224,26 @@ static int64_t CalculateMemoryPatternsKey(const std::vector<std::reference_wrapp
 
 #ifdef ENABLE_TRAINING
 namespace {
-Status ResolveDimParams(const GraphViewer& graph, const std::map<std::string, TensorShape>& feeds, std::unordered_map<std::string, int64_t>& out) {
+Status ResolveDimParams(const GraphViewer& graph,
+                        const std::map<std::string, TensorShape>& feeds,
+                        std::unordered_map<std::string, int64_t>& out) {
   for (const auto* input : graph.GetInputs()) {
     auto* shape = input->Shape();
     auto it = feeds.find(input->Name());
-    if (it == feeds.end())
-      return Status(ONNXRUNTIME, FAIL, "Graph input " + input->Name() + " is not found in the feed list, unable to resolve the value for dynamic shape.");
-    if (!shape || shape->dim_size() != static_cast<int>(it->second.NumDimensions()))
+    if (it == feeds.end()) {
+      return Status(ONNXRUNTIME, FAIL,
+                    "Graph input " + input->Name() +
+                        " is not found in the feed list, unable to resolve the value for dynamic shape.");
+    }
+    if (it->second.NumDimensions() == 0 && !shape) {
+      // This is a scalar, which has nothing to do with symbolic shapes.
+      continue;
+    }
+    if (!shape || shape->dim_size() != static_cast<int>(it->second.NumDimensions())) {
       return Status(ONNXRUNTIME, FAIL, "Graph input " + input->Name() +
                                            "'s shape is not present or its shape doesn't match feed's shape."
                                            "Unable to resolve the value for dynamic shape");
+    }
     for (int k = 0, end = shape->dim_size(); k < end; ++k) {
       if (shape->dim()[k].has_dim_param()) {
         out.insert({shape->dim()[k].dim_param(), it->second.GetDims()[k]});
@@ -358,7 +364,7 @@ const MemoryPatternGroup* SessionState::GetMemoryPatternGroup(const std::vector<
 void SessionState::ResolveMemoryPatternFlag() {
   if (enable_mem_pattern_) {
     for (auto* input : graph_viewer_->GetInputs()) {
-      if (!input->Shape()) {
+      if (!input->HasTensorOrScalarShape()) {
         enable_mem_pattern_ = false;
         break;
       }

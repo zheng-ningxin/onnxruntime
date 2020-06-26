@@ -113,7 +113,7 @@ class SessionState {
   AllocatorPtr GetAllocator(const OrtMemoryInfo& location) const noexcept;
 
   /** Get the allocator for a given OrtDevice. The first allocator that matches will be returned. */
-  AllocatorPtr GetAllocator(OrtDevice device, int device_id = 0) const noexcept;
+  AllocatorPtr GetAllocator(OrtDevice device) const noexcept;
 
   const OrtValueNameIdxMap& GetOrtValueNameIdxMap() const noexcept { return ort_value_name_idx_map_; }
 
@@ -172,13 +172,13 @@ class SessionState {
   Get the logger for this session.
   Falls back to returning Logging::LoggingManager::DefaultLogger if SetLogger has not been called.
   */
-  const logging::Logger& Logger() const { return logger_; }
+  const logging::Logger& Logger() const noexcept { return logger_; }
 
   /**
   Get the profiler for this session. It needs to be enabled via the InferenceSession to perform
   profiling actions.
   */
-  profiling::Profiler& Profiler() const;
+  profiling::Profiler& Profiler() const noexcept { return profiler_; }
 
   /**
   Get cached memory pattern based on input shapes
@@ -248,18 +248,18 @@ class SessionState {
   // If the node isn't going to be executed by the CPU provider we don't need it.
   void RemoveSubgraphSessionState(onnxruntime::NodeIndex index);
 
-  concurrency::ThreadPool* GetThreadPool() const { return thread_pool_; }
-  concurrency::ThreadPool* GetInterOpThreadPool() const { return inter_op_thread_pool_; }
+  concurrency::ThreadPool* GetThreadPool() const noexcept { return thread_pool_; }
+  concurrency::ThreadPool* GetInterOpThreadPool() const noexcept { return inter_op_thread_pool_; }
 
-  bool ExportDll() const { return export_fused_dll_; }
-  void SetExportDllFlag(bool flag) { export_fused_dll_ = flag; }
+  bool ExportDll() const noexcept { return export_fused_dll_; }
+  void SetExportDllFlag(bool flag) noexcept { export_fused_dll_ = flag; }
 
-  const FuncManager& GetFuncMgr() const { return fused_funcs_mgr_; }
-  FuncManager& GetMutableFuncMgr() { return fused_funcs_mgr_; }
+  const FuncManager& GetFuncMgr() const noexcept { return fused_funcs_mgr_; }
+  FuncManager& GetMutableFuncMgr() noexcept { return fused_funcs_mgr_; }
 
-  const DataTransferManager& GetDataTransferMgr() const { return data_transfer_mgr_; }
+  const DataTransferManager& GetDataTransferMgr() const noexcept { return data_transfer_mgr_; }
 
-  std::vector<BufferUniquePtr>& GetMutableWeightsBuffers() { return weights_buffers_; }
+  std::vector<BufferUniquePtr>& GetMutableWeightsBuffers() noexcept { return weights_buffers_; }
   const NodeIndexInfo& GetNodeIndexInfo() const;
 
   void UpdateToBeExecutedNodes(const std::vector<int>& fetch_mlvalue_idxs);
@@ -280,7 +280,7 @@ class SessionState {
   // cache of the constructed kernels to avoid spending construction time per executor
   std::vector<OpKernel*> session_kernels_;
   Graph& graph_;
-  std::unique_ptr<GraphViewer> graph_viewer_;  // const GraphViewer for const access to Graph
+  std::unique_ptr<GraphViewer> graph_viewer_;  // GraphViewer for const access to Graph
 
   const ExecutionProviders& execution_providers_;
 
