@@ -8,11 +8,9 @@ from .model_desc_validation import _ORTTrainerModelDesc
 
 class TrainStepInfo(object):
     r"""Private class used to store runtime information from current train step.
-
     After every train step, :py:meth:`ORTTrainer.train_step` updates the internal instance of
     :py:class:`.TrainStepInfo` residing on :py:class:`.ORTTrainer` with relevant information
     from the forward pass.
-
     This class shouldn't be accessed directly by the user, unless they really know what they are doing.
     Instead, :py:class:`.ORTTrainer` passes it to relevant class methods automatically,
     such as :py:method:`._LRScheduler.get_lr` or :py:class:`.LossScaler.update`.
