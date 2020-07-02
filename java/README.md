@@ -5,7 +5,9 @@ Java Native Interface (JNI) is used to allow for seamless calls to ONNX runtime 
 
 ## Usage
 
-TBD: maven distribution
+Official Java packages (Maven Central):
+* CPU: [com.microsoft.onnxruntime:onnxruntime](https://search.maven.org/artifact/com.microsoft.onnxruntime/onnxruntime)
+* GPU: [com.microsoft.onnxruntime/onnxruntime_gpu](https://search.maven.org/artifact/com.microsoft.onnxruntime/onnxruntime_gpu)
 
 The minimum supported Java Runtime is version 8.
 
