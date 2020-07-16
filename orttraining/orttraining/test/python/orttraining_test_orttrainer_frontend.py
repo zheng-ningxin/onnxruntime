@@ -239,7 +239,6 @@ def testInvalidParamGroups(optim_name):
     ('SGDOptimizer')
 ])
 def testLinearLRSchedulerCreation(optim_name):
-    rtol = 1e-03
     initial_lr = 0.5
     total_steps = 10
     warmup = 0.05
@@ -251,16 +250,12 @@ def testLinearLRSchedulerCreation(optim_name):
     elif optim_name == 'SGDOptimizer':
         optimizer_config = optim.SGDConfig(lr=initial_lr)
 
-    lr_scheduler = optim.lr_scheduler.LinearWarmupLRScheduler(optimizer_config,
-                                                              total_steps,
+    lr_scheduler = optim.lr_scheduler.LinearWarmupLRScheduler(total_steps,
                                                               warmup)
 
     # Initial state
-    assert lr_scheduler.optimizer_config == optimizer_config
     assert lr_scheduler.total_steps == total_steps
     assert lr_scheduler.warmup == warmup
-    assert_allclose(lr_scheduler.optimizer_config.hyper_parameters['lr'],
-                    initial_lr, rtol=rtol, err_msg="lr mismatch")
 
 
 @pytest.mark.parametrize("lr_scheduler,expected_values", [
