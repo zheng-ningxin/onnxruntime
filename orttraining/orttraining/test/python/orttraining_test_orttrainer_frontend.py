@@ -66,15 +66,15 @@ def testORTTrainerOptionsInvalidMixedPrecisionEnabledSchema():
 def testTrainStepInfo():
     '''Test valid initializations of TrainStepInfo'''
 
-    step_info = orttrainer.TrainStepInfo(all_finite=True, epoch=1, step=2)
+    step_info = orttrainer.TrainStepInfo(all_finite=True, step=2, optimizer_config=optim.SGDConfig())
     assert step_info.all_finite is True
-    assert step_info.epoch == 1
     assert step_info.step == 2
+    assert isinstance(step_info.optimizer_config, optim._OptimizerConfig)
 
     step_info = orttrainer.TrainStepInfo()
     assert step_info.all_finite is None
-    assert step_info.epoch is None
     assert step_info.step is None
+    assert step_info.optimizer_config is None
 
 
 @pytest.mark.parametrize("test_input", [
@@ -87,10 +87,10 @@ def testTrainStepInfoInvalidAllFinite(test_input):
         orttrainer.TrainStepInfo(all_finite=test_input)
 
     with pytest.raises(AssertionError):
-        orttrainer.TrainStepInfo(epoch=test_input)
+        orttrainer.TrainStepInfo(step=test_input)
 
     with pytest.raises(AssertionError):
-        orttrainer.TrainStepInfo(step=test_input)
+        orttrainer.TrainStepInfo(optimizer_config=test_input)
 
 
 @pytest.mark.parametrize("optim_name,lr,alpha,default_alpha", [
@@ -287,7 +287,7 @@ def testLRSchedulerUpdateImpl(lr_scheduler, expected_values):
     # First half is warmup
     for step in range(total_steps):
         # Emulate train step call
-        train_step_info = TrainStepInfo(step=step)
+        train_step_info = TrainStepInfo(step=step, optimizer_config=optimizer_config)
 
         lr_scheduler._step(train_step_info)
         lr_list = lr_scheduler.get_last_lr()
