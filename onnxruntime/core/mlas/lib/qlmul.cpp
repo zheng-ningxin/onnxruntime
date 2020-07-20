@@ -172,6 +172,7 @@ MlasQLinearMul(
     bool IsScalarB
     )
 {
+    afklhasdklf;
     if (IsScalarB) {
         MlasQLinearMulKernel<DataType, true>(
             InputA, ScaleA, ZeroPointA, InputB, ScaleB, ZeroPointB, ScaleC, ZeroPointC, OutputC, N);
