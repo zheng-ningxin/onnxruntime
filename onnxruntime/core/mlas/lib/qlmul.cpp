@@ -18,11 +18,69 @@ Abstract:
 
 --*/
 
-#include "mlasi.h"
+#include "qladd.h"
 
 #if defined(MLAS_NEON_INTRINSICS)
 
 #elif defined(MLAS_SSE2_INTRINSICS)
+
+template <typename DataType>
+MLAS_FORCEINLINE
+static
+MLAS_INT32X4
+MlasShiftRightInt32(
+    MLAS_INT32X4 v,
+    int imm
+    );
+
+template<>
+MLAS_INT32X4
+MlasShiftRightInt32<int8_t>(
+    MLAS_INT32X4 v,
+    int imm
+    )
+{
+    return _mm_srai_epi32(v, imm);
+}
+
+template<>
+MLAS_INT32X4
+MlasShiftRightInt32<uint8_t>(
+    MLAS_INT32X4 v,
+    int imm
+    )
+{
+    return _mm_srli_epi32(v, imm);
+}
+
+template <typename DataType>
+MLAS_FORCEINLINE
+static
+MLAS_INT32X4
+MlasPackS16_128(
+    MLAS_INT32X4 a,
+    MLAS_INT32X4 b
+    );
+
+template <>
+MLAS_INT32X4
+MlasPackS16_128<uint8_t>(
+    MLAS_INT32X4 a,
+    MLAS_INT32X4 b
+    )
+{
+    return _mm_packus_epi16(a, b);
+}
+
+template <>
+MLAS_INT32X4
+MlasPackS16_128<int8_t>(
+    MLAS_INT32X4 a,
+    MLAS_INT32X4 b
+    )
+{
+    return _mm_packs_epi16(a, b);
+}
 
 template<typename DataType, bool IsScalarB>
 static
@@ -47,7 +105,7 @@ MlasQLinearMulKernel(
 
     MLAS_INT32X4 va_lo, va_hi, vb_lo, vb_hi;
     if (IsScalarB) {
-        vb_lo = _mm_sub_epi32(_mm_set1_ps((int32_t)*InputB), VectorZeroPointB);
+        vb_lo = _mm_sub_epi32(MlasBroadcastInt32x4((int32_t)*InputB), VectorZeroPointB);
         vb_hi = vb_lo;
     }
 
@@ -155,7 +213,7 @@ MlasQLinearMulKernel(
 
 #endif
 
-template<typename DataType>
+template <typename DataType>
 void
 MLASCALL
 MlasQLinearMul(
@@ -172,7 +230,6 @@ MlasQLinearMul(
     bool IsScalarB
     )
 {
-    afklhasdklf;
     if (IsScalarB) {
         MlasQLinearMulKernel<DataType, true>(
             InputA, ScaleA, ZeroPointA, InputB, ScaleB, ZeroPointB, ScaleC, ZeroPointC, OutputC, N);
@@ -181,3 +238,36 @@ MlasQLinearMul(
             InputA, ScaleA, ZeroPointA, InputB, ScaleB, ZeroPointB, ScaleC, ZeroPointC, OutputC, N);
     }
 }
+
+// Explicit instantiation
+template
+void
+MlasQLinearMul<uint8_t>(
+    const uint8_t* InputA,
+    float ScaleA,
+    int32_t ZeroPointA,
+    const uint8_t* InputB,
+    float ScaleB,
+    int32_t ZeroPointB,
+    float ScaleC,
+    int32_t ZeroPointC,
+    uint8_t* OutputC,
+    size_t N,
+    bool IsScalarB
+    );
+
+template
+void
+MlasQLinearMul<int8_t>(
+    const int8_t* InputA,
+    float ScaleA,
+    int32_t ZeroPointA,
+    const int8_t* InputB,
+    float ScaleB,
+    int32_t ZeroPointB,
+    float ScaleC,
+    int32_t ZeroPointC,
+    int8_t* OutputC,
+    size_t N,
+    bool IsScalarB
+    );
