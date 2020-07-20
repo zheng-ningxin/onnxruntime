@@ -2559,6 +2559,119 @@ private:
             if (!IsScalarB) {
                 InputB[n] = static_cast<T>(distribution(generator));
             }
+            OutputReference[n] = QLinearMulScalar(InputA[n], ScaleA, ZeroPointA, InputB[IsScalarB ? 0 : n], ScaleB, ZeroPointB, ScaleC, ZeroPointC);
+        }
+
+        MlasQLinearMul(InputA, ScaleA, ZeroPointA, InputB, ScaleB, ZeroPointB, ScaleC, ZeroPointC, OutputC, N, IsScalarB);
+
+        for (size_t n = 0; n < N; n++) {
+            int diff = (int)OutputC[n] - (int)OutputReference[n];
+            if (diff < -1 || diff > 1) {
+                printf("Test IsScalarB=%d difference @%u of %u, %d(%f,%d) * %d(%f,%d) => %d(%f,%d) (expecting %d)\n",
+                        int(IsScalarB), static_cast<unsigned>(n), static_cast<unsigned>(N),
+                        static_cast<int>(InputA[n]), ScaleA, ZeroPointA,
+                        static_cast<int>(InputB[IsScalarB ? 0 : n]), ScaleB, ZeroPointB,
+                        static_cast<int>(OutputC[n]), ScaleC, ZeroPointC,
+                        static_cast<int>(OutputReference[n]));
+            }
+        }
+    }
+
+public:
+    void
+    ExecuteShort(
+        void
+        ) override
+    {
+        // uint8_t test
+        static const uint8_t zero_points[] = { 0, 18, 75, 128, 157, 231, 255 };
+        const int8_t* s_zero_points = (const int8_t*)(zero_points[0]);
+        
+        for (size_t a = 0; a < _countof(zero_points); a++) {
+            for (size_t b = 0; b < _countof(zero_points); b++) {
+                for (size_t c = 0; c < _countof(zero_points); c++) {
+                    for (size_t n = 1; n < 128; n++) {
+                        // u8, vector + vector
+                        Test<uint8_t, false>(n, 10.f, zero_points[a], 10.f, zero_points[b], 20.f, zero_points[c]);
+
+                        // u8, vector + scalar
+                        Test<uint8_t, true>(n, 10.f, zero_points[a], 10.f, zero_points[b], 20.f, zero_points[b]);
+
+                        // s8, vector + vector
+                        Test<int8_t, false>(n, 10.f, s_zero_points[a], 10.f, s_zero_points[b], 20.f, s_zero_points[c]);
+
+                        // s8, vector + scalar
+                        Test<int8_t, true>(n, 10.f, s_zero_points[a], 10.f, s_zero_points[b], 20.f, s_zero_points[b]);
+                    }
+                }
+            }
+        }
+    }
+};
+
+class MlasQLinearMulTest : public MlasTestBase
+{
+private:
+    MatrixGuardBuffer<uint8_t> BufferInputA;
+    MatrixGuardBuffer<uint8_t> BufferInputB;
+    MatrixGuardBuffer<uint8_t> BufferOutput;
+    MatrixGuardBuffer<uint8_t> BufferOutputReference;
+
+    template <typename T>
+    T
+    QLinearMulScalar(
+        T a,
+        float ScaleA,
+        int32_t ZeroPointA,
+        T b,
+        float ScaleB,
+        int32_t ZeroPointB,
+        float ScaleC,
+        int32_t ZeroPointC
+        )
+    {
+        constexpr int qmax = std::numeric_limits<T>::max();
+        constexpr int qmin = std::numeric_limits<T>::min();
+
+        float ValueA = ScaleA * (static_cast<int>(a) - ZeroPointA);
+        float ValueB = ScaleB * (static_cast<int>(b) - ZeroPointB);
+        float ValueC = std::nearbyintf((ValueA * ValueB) / ScaleC) + ZeroPointC;
+        int qc = static_cast<int>(ValueC);
+        qc = std::min(qc, qmax);
+        qc = std::max(qc, qmin);
+        return static_cast<T>(qc);
+    }
+
+    template <typename T, bool IsScalarB>
+    void
+    Test(
+        size_t N,
+        float ScaleA,
+        int32_t ZeroPointA,
+        float ScaleB,
+        int32_t ZeroPointB,
+        float ScaleC,
+        int32_t ZeroPointC
+        )
+    {
+        T* InputA = (T*)BufferInputA.GetBuffer(N);
+        T* InputB = (T*)BufferInputB.GetBuffer(IsScalarB ? 1 : N);
+        T* OutputC = (T*)BufferOutput.GetBuffer(N);
+        T* OutputReference = (T*)BufferOutputReference.GetBuffer(N);
+
+        constexpr int MinimumValue = (int)std::numeric_limits<T>::min();
+        constexpr int MaximumValue = (int)std::numeric_limits<T>::max();
+        std::default_random_engine generator(static_cast<unsigned>(N));
+        std::uniform_int_distribution<int> distribution(MinimumValue, MaximumValue);
+
+        if (IsScalarB) {
+            InputB[0] = static_cast<T>(distribution(generator));
+        }
+        for (size_t n = 0; n < N; n++) {
+            InputA[n] = static_cast<T>(distribution(generator));
+            if (!IsScalarB) {
+                InputB[n] = static_cast<T>(distribution(generator));
+            }
             OutputReference[n] = QLinearAddScalar(InputA[n], ScaleA, ZeroPointA, InputB[IsScalarB ? 0 : n], ScaleB, ZeroPointB, ScaleC, ZeroPointC);
         }
 
