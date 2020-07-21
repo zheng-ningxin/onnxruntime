@@ -2600,24 +2600,16 @@ private:
     }
 
 public:
-    typedef void (*QLinearBinaryOpS8)(
-                const int8_t* InputA, float ScaleA, int32_t ZeroPointA, 
-                const int8_t* InputB, float ScaleB, int32_t ZeroPointB,
-                float ScaleC, int32_t ZeroPointC, int8_t* OutputC,
-                size_t N, bool IsScalarB);
-    typedef void (*QLinearBinaryOpU8)(
-                const uint8_t* InputA, float ScaleA, int32_t ZeroPointA, 
-                const uint8_t* InputB, float ScaleB, int32_t ZeroPointB,
-                float ScaleC, int32_t ZeroPointC, uint8_t* OutputC,
-                size_t N, bool IsScalarB);
-
     explicit MlasQLinearBinaryOpTest(
         std::function<float(float, float)> P_ScalarOp,
         const std::string& P_ScalarOpName,
         QLinearBinaryOpS8 P_QLinearS8Op,
         QLinearBinaryOpU8 P_QLinearU8Op
         )
-        : ScalarOp(P_ScalarOp), ScalarOpName(P_ScalarOpName), QLinearS8Op(P_QLinearS8Op), QLinearU8Op(P_QLinearU8Op)
+        : ScalarOp(P_ScalarOp),
+          ScalarOpName(P_ScalarOpName),
+          QLinearS8Op(P_QLinearS8Op),
+          QLinearU8Op(P_QLinearU8Op)
     {
     }
 
@@ -2627,23 +2619,26 @@ public:
         ) override
     {
         static const uint8_t zero_points[] = { 0, 18, 75, 128, 157, 231, 255 };
-        const int8_t* s_zero_points = (const int8_t*)(zero_points[0]);
-        
+        static const float c_scales[] = { 18.0f, 90.0f };
+
+        const int8_t* s_zero_points = (const int8_t*)(&zero_points[0]);
         for (size_t a = 0; a < _countof(zero_points); a++) {
             for (size_t b = 0; b < _countof(zero_points); b++) {
                 for (size_t c = 0; c < _countof(zero_points); c++) {
-                    for (size_t n = 1; n < 128; n++) {
-                        // u8, vector + vector
-                        Test<uint8_t>(QLinearU8Op, n, false, 10.f, zero_points[a], 10.f, zero_points[b], 20.f, zero_points[c]);
+                    for (size_t s = 0; s < _countof(c_scales); s++) {
+                        for (size_t n = 1; n < 128; n++) {
+                            // u8, vector + vector
+                            Test<uint8_t>(QLinearU8Op, n, false, 10.f, zero_points[a], 10.f, zero_points[b], c_scales[s], zero_points[c]);
 
-                        // u8, vector + scalar
-                        Test<uint8_t>(QLinearU8Op, n, true, 10.f, zero_points[a], 10.f, zero_points[b], 20.f, zero_points[b]);
+                            // u8, vector + scalar
+                            Test<uint8_t>(QLinearU8Op, n, true, 10.f, zero_points[a], 10.f, zero_points[b], c_scales[s], zero_points[c]);
 
-                        // s8, vector + vector
-                        Test<int8_t>(QLinearS8Op, n, false, 10.f, s_zero_points[a], 10.f, s_zero_points[b], 20.f, s_zero_points[c]);
+                            // s8, vector + vector
+                            Test<int8_t>(QLinearS8Op, n, false, 10.f, s_zero_points[a], 10.f, s_zero_points[b], c_scales[s], s_zero_points[c]);
 
-                        // s8, vector + scalar
-                        Test<int8_t>(QLinearS8Op, n, true, 10.f, s_zero_points[a], 10.f, s_zero_points[b], 20.f, s_zero_points[b]);
+                            // s8, vector + scalar
+                            Test<int8_t>(QLinearS8Op, n, true, 10.f, s_zero_points[a], 10.f, s_zero_points[b], c_scales[s], s_zero_points[c]);
+                        }
                     }
                 }
             }

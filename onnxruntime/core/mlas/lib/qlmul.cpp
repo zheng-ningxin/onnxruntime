@@ -124,15 +124,13 @@ MlasQLinearMulKernel(
             vb_hi = _mm_sub_epi32(MlasShiftRightInt32<DataType>(_mm_unpackhi_epi16(vb_i16x8, vb_i16x8), 24), VectorZeroPointB);
         }
 
-        auto r_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_mul_epi32(va_lo, vb_lo)), VectorScaleRatio)), VectorZeroPointC);
-        auto r_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_mul_epi32(va_hi, vb_hi)), VectorScaleRatio)), VectorZeroPointC);
-
+        auto r_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(_mm_cvtepi32_ps(va_lo), _mm_cvtepi32_ps(vb_lo)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(_mm_cvtepi32_ps(va_hi), _mm_cvtepi32_ps(vb_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_i16x8 = _mm_packs_epi32(r_lo, r_hi);
-        MLAS_INT32X4 vc = MlasPackS16_128<DataType>(vc_i16x8, vc_i16x8);
-
-        N -= 8;
+        auto vc = MlasPackS16_128<DataType>(vc_i16x8, vc_i16x8);
         _mm_storel_epi64((MLAS_INT32X4*)OutputC, vc);
         OutputC += 8;
+        N -= 8;
     }
 
     if (N > 0) {
@@ -152,10 +150,10 @@ MlasQLinearMulKernel(
             vb_hi = _mm_sub_epi32(MlasShiftRightInt32<DataType>(_mm_unpackhi_epi16(vb_i16x8, vb_i16x8), 24), VectorZeroPointB);
         }
 
-        auto r_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_mul_epi32(va_lo, vb_lo)), VectorScaleRatio)), VectorZeroPointC);
-        auto r_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_mul_epi32(va_hi, vb_hi)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(_mm_cvtepi32_ps(va_lo), _mm_cvtepi32_ps(vb_lo)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(_mm_cvtepi32_ps(va_hi), _mm_cvtepi32_ps(vb_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_i16x8 = _mm_packs_epi32(r_lo, r_hi);
-        MLAS_INT32X4 vc = MlasPackS16_128<DataType>(vc_i16x8, vc_i16x8);
+        auto vc = MlasPackS16_128<DataType>(vc_i16x8, vc_i16x8);
 
         if (N & 4) {
             *(int*)OutputC = _mm_cvtsi128_si32(vc);
