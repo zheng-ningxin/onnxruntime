@@ -2499,12 +2499,12 @@ class MlasQLinearBinaryOpTest : public MlasTestBase
 {
 public:
     typedef void (*QLinearBinaryOpS8)(
-                const int8_t* InputA, float ScaleA, int32_t ZeroPointA, 
+                const int8_t* InputA, float ScaleA, int32_t ZeroPointA,
                 const int8_t* InputB, float ScaleB, int32_t ZeroPointB,
                 float ScaleC, int32_t ZeroPointC, int8_t* OutputC,
                 size_t N, bool IsScalarB);
     typedef void (*QLinearBinaryOpU8)(
-                const uint8_t* InputA, float ScaleA, int32_t ZeroPointA, 
+                const uint8_t* InputA, float ScaleA, int32_t ZeroPointA,
                 const uint8_t* InputB, float ScaleB, int32_t ZeroPointB,
                 float ScaleC, int32_t ZeroPointC, uint8_t* OutputC,
                 size_t N, bool IsScalarB);
@@ -2548,7 +2548,7 @@ private:
     void
     Test(
         void (*QLinearBinaryOp)(
-                const T* InputA, float ScaleA, int32_t ZeroPointA, 
+                const T* InputA, float ScaleA, int32_t ZeroPointA,
                 const T* InputB, float ScaleB, int32_t ZeroPointB,
                 float ScaleC, int32_t ZeroPointC, T* OutputC,
                 size_t N, bool IsScalarB),

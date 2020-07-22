@@ -50,7 +50,7 @@ MlasQLinearMulKernel(
     if (IsScalarB) {
         const typename SUI::i8x8_t VectorB0 = SUI::vmov_n_i8(*InputB);
         vb0_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(VectorB0, VectorZeroPointB));
-        vb1_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(VectorB0, VectorZeroPointB));
+        vb1_s16x8 = vb0_s16x8;
     }
 
     while (N >= 16) {
@@ -65,7 +65,7 @@ MlasQLinearMulKernel(
             vb0_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(SUI::vget_low_i8(VectorB0), VectorZeroPointB));
             vb1_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(SUI::vget_high_i8(VectorB0), VectorZeroPointB));
         }
-        
+
         int32x4_t vacc0_lo = vmull_s16(vget_low_s16(va0_s16x8), vget_low_s16(vb0_s16x8));
         int32x4_t vacc0_hi = vmull_s16(vget_high_s16(va0_s16x8), vget_high_s16(vb0_s16x8));
         int32x4_t vacc1_lo = vmull_s16(vget_low_s16(va1_s16x8), vget_low_s16(vb1_s16x8));
@@ -103,7 +103,7 @@ MlasQLinearMulKernel(
             vb0_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(SUI::vget_low_i8(VectorB0), VectorZeroPointB));
             vb1_s16x8 = SUI::vreinterpretq_s16_i16(SUI::vsubl_i8(SUI::vget_high_i8(VectorB0), VectorZeroPointB));
         }
-        
+
         int32x4_t vacc0_lo = vmull_s16(vget_low_s16(va0_s16x8), vget_low_s16(vb0_s16x8));
         int32x4_t vacc0_hi = vmull_s16(vget_high_s16(va0_s16x8), vget_high_s16(vb0_s16x8));
         int32x4_t vacc1_lo = vmull_s16(vget_low_s16(va1_s16x8), vget_low_s16(vb1_s16x8));
