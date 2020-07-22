@@ -2756,6 +2756,37 @@ RunThreadedTests(
     onnxruntime::make_unique<MlasSoftmaxTest>()->ExecuteShort();
 }
 
+#include <chrono>
+#include <iostream>
+template<typename T>
+void speed_ql_mul(size_t N=2096*2096)
+{
+    constexpr int MinimumValue = (int)std::numeric_limits<T>::min();
+    constexpr int MaximumValue = (int)std::numeric_limits<T>::max();
+    std::default_random_engine generator(static_cast<unsigned>(N));
+    std::uniform_int_distribution<int> distribution(MinimumValue, MaximumValue);
+
+    std::vector<T> input_a(N), input_b(N), output_c(N, T{0});
+    for (size_t n = 0; n < N; n++) {
+        input_a[n] = static_cast<T>(distribution(generator));
+        input_b[n] = static_cast<T>(distribution(generator));
+    }
+
+    // Warm up
+    MlasQLinearMul<T>(input_a.data(), 10.0, 10, input_b.data(), 10.0, 20, 100.0, 15, output_c.data(), N, false);
+
+    std::cout << "Speeding qlmul with " << N << " items ....... " << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++) {
+        MlasQLinearMul<T>(input_a.data(), 10.0, 10, input_b.data(), 10.0, 20, 100.0, 15, output_c.data(), N, false);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end-start;
+    std::cout << "Time cost qlmul " << N << " items : " << diff.count() << " s" << std::endl;
+    return;
+}
+
+
 int
 #if defined(_WIN32)
 __cdecl
@@ -2764,6 +2795,8 @@ main(
     void
     )
 {
+    speed_ql_mul<int8_t>();
+
     //
     // Run threaded tests without the thread pool.
     //
