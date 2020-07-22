@@ -238,7 +238,6 @@ MlasQLinearMulKernel(
         uint8_t TailData[16] = { 0 };
 
         MlasCopyTailBytes(TailData, (const uint8_t*)InputA, N);
-
         const auto va_i8x16 = _mm_loadu_si128((const MLAS_INT32X4*)TailData);
         const auto va_lo_i16x8 = _mm_sub_epi16(MlasShiftRightInt16<DataType>(_mm_unpacklo_epi8(va_i8x16, va_i8x16), 8), VectorZeroPointA);
         const auto va_hi_i16x8 = _mm_sub_epi16(MlasShiftRightInt16<DataType>(_mm_unpackhi_epi8(va_i8x16, va_i8x16), 8), VectorZeroPointA);
