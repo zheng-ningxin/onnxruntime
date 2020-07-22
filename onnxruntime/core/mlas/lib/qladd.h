@@ -340,6 +340,36 @@ MlasShiftRightInt32<uint8_t>(
 template <typename DataType>
 MLAS_FORCEINLINE
 MLAS_INT32X4
+MlasShiftRightInt16(
+    MLAS_INT32X4 v,
+    int imm
+    );
+
+template<>
+MLAS_FORCEINLINE
+MLAS_INT32X4
+MlasShiftRightInt16<int8_t>(
+    MLAS_INT32X4 v,
+    int imm
+    )
+{
+    return _mm_srai_epi16(v, imm);
+}
+
+template<>
+MLAS_FORCEINLINE
+MLAS_INT32X4
+MlasShiftRightInt16<uint8_t>(
+    MLAS_INT32X4 v,
+    int imm
+    )
+{
+    return _mm_srli_epi16(v, imm);
+}
+
+template <typename DataType>
+MLAS_FORCEINLINE
+MLAS_INT32X4
 MlasPackS16_128(
     MLAS_INT32X4 a,
     MLAS_INT32X4 b
