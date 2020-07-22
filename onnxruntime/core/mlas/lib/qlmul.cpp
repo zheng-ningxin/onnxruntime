@@ -212,20 +212,16 @@ MlasQLinearMulKernel(
             vb_hi_i16x8 = _mm_sub_epi16(MlasShiftRightInt16<DataType>(_mm_unpackhi_epi8(vb_i8x16, vb_i8x16), 8), VectorZeroPointB);
         }
 
-        auto va_lo_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(va_lo_i16x8, va_lo_i16x8), 16));
-        auto vb_lo_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(vb_lo_i16x8, vb_lo_i16x8), 16));
-        auto va_lo_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(va_lo_i16x8, va_lo_i16x8), 16));
-        auto vb_lo_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(vb_lo_i16x8, vb_lo_i16x8), 16));
-        auto r_lo_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_lo_lo, vb_lo_lo), VectorScaleRatio)), VectorZeroPointC);
-        auto r_lo_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_lo_hi, vb_lo_hi), VectorScaleRatio)), VectorZeroPointC);
+        auto ab_lo_lo = _mm_mullo_epi16(va_lo_i16x8, vb_lo_i16x8);
+        auto ab_lo_hi = _mm_mulhi_epi16(va_lo_i16x8, vb_lo_i16x8);
+        auto r_lo_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpacklo_epi16(ab_lo_lo, ab_lo_hi)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_lo_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpackhi_epi16(ab_lo_lo, ab_lo_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_lo_i16x8 = _mm_packs_epi32(r_lo_lo, r_lo_hi);
 
-        auto va_hi_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(va_hi_i16x8, va_hi_i16x8), 16));
-        auto vb_hi_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(vb_hi_i16x8, vb_hi_i16x8), 16));
-        auto va_hi_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(va_hi_i16x8, va_hi_i16x8), 16));
-        auto vb_hi_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(vb_hi_i16x8, vb_hi_i16x8), 16));
-        auto r_hi_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_hi_lo, vb_hi_lo), VectorScaleRatio)), VectorZeroPointC);
-        auto r_hi_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_hi_hi, vb_hi_hi), VectorScaleRatio)), VectorZeroPointC);
+        auto ab_hi_lo = _mm_mullo_epi16(va_hi_i16x8, vb_hi_i16x8);
+        auto ab_hi_hi = _mm_mulhi_epi16(va_hi_i16x8, vb_hi_i16x8);
+        auto r_hi_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpacklo_epi16(ab_hi_lo, ab_hi_hi)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_hi_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpackhi_epi16(ab_hi_lo, ab_hi_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_hi_i16x8 = _mm_packs_epi32(r_hi_lo, r_hi_hi);
 
         auto vc = MlasPackS16_128<DataType>(vc_lo_i16x8, vc_hi_i16x8);
@@ -249,20 +245,16 @@ MlasQLinearMulKernel(
             vb_hi_i16x8 = _mm_sub_epi16(MlasShiftRightInt16<DataType>(_mm_unpackhi_epi8(vb_i8x16, vb_i8x16), 8), VectorZeroPointB);
         }
 
-        auto va_lo_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(va_lo_i16x8, va_lo_i16x8), 16));
-        auto vb_lo_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(vb_lo_i16x8, vb_lo_i16x8), 16));
-        auto va_lo_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(va_lo_i16x8, va_lo_i16x8), 16));
-        auto vb_lo_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(vb_lo_i16x8, vb_lo_i16x8), 16));
-        auto r_lo_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_lo_lo, vb_lo_lo), VectorScaleRatio)), VectorZeroPointC);
-        auto r_lo_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_lo_hi, vb_lo_hi), VectorScaleRatio)), VectorZeroPointC);
+        auto ab_lo_lo = _mm_mullo_epi16(va_lo_i16x8, vb_lo_i16x8);
+        auto ab_lo_hi = _mm_mulhi_epi16(va_lo_i16x8, vb_lo_i16x8);
+        auto r_lo_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpacklo_epi16(ab_lo_lo, ab_lo_hi)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_lo_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpackhi_epi16(ab_lo_lo, ab_lo_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_lo_i16x8 = _mm_packs_epi32(r_lo_lo, r_lo_hi);
 
-        auto va_hi_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(va_hi_i16x8, va_hi_i16x8), 16));
-        auto vb_hi_lo = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(vb_hi_i16x8, vb_hi_i16x8), 16));
-        auto va_hi_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(va_hi_i16x8, va_hi_i16x8), 16));
-        auto vb_hi_hi = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(vb_hi_i16x8, vb_hi_i16x8), 16));
-        auto r_hi_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_hi_lo, vb_hi_lo), VectorScaleRatio)), VectorZeroPointC);
-        auto r_hi_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_mul_ps(va_hi_hi, vb_hi_hi), VectorScaleRatio)), VectorZeroPointC);
+        auto ab_hi_lo = _mm_mullo_epi16(va_hi_i16x8, vb_hi_i16x8);
+        auto ab_hi_hi = _mm_mulhi_epi16(va_hi_i16x8, vb_hi_i16x8);
+        auto r_hi_lo = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpacklo_epi16(ab_hi_lo, ab_hi_hi)), VectorScaleRatio)), VectorZeroPointC);
+        auto r_hi_hi = _mm_add_epi32(_mm_cvtps_epi32(_mm_mul_ps(_mm_cvtepi32_ps(_mm_unpackhi_epi16(ab_hi_lo, ab_hi_hi)), VectorScaleRatio)), VectorZeroPointC);
         const auto vc_hi_i16x8 = _mm_packs_epi32(r_hi_lo, r_hi_hi);
 
         auto vc = MlasPackS16_128<DataType>(vc_lo_i16x8, vc_hi_i16x8);
