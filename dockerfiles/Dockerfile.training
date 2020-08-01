@@ -113,7 +113,7 @@ RUN pip install torch==${PYTORCH_VERSION}
 # build onnxruntime wheel with cuda and mpi support
 RUN cd /stage && git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
-    git checkout v1.4.0 &&\
+    git checkout orttraining_rc2 &&\
     python tools/ci_build/build.py \
         --cmake_extra_defines \
             ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` \
