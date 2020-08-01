@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 # multi-stage arguments (repeat ARG NAME below)
-ARG MOFED_VERSION=4.7-3.2.9.0
 ARG UCX_VERSION=1.8.0
 ARG OPENMPI_VERSION=4.0.4
 ARG CONDA_VERSION=4.7.10
@@ -62,7 +61,8 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
     ./configure \
 	--prefix=/opt/ucx \
         --with-cuda=/usr/local/cuda \
-        --with-verbs=/usr \
+        --with-verbs=/usr/lib/x86_64-linux-gnu \
+        --with-rdmacm=/usr/lib/x86_64-linux-gnu \
         --enable-mt &&\
     make -j"$(nproc)" &&\
     make install
@@ -184,7 +184,13 @@ RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' \
     chmod u=rwx,go=rx /run/sshd
 
 # export versions
-LABEL MOFED_VERSION=${MOFED_VERSION}
+ARG UCX_VERSION
+ARG OPENMPI_VERSION
+ARG CONDA_VERSION
+ARG MKL_VERSION
+ARG NUMPY_VERSION
+ARG ONNX_VERSION
+ARG PYTORCH_VERSION
 LABEL UCX_VERSION=${UCX_VERSION}
 LABEL OPENMPI_VERSION=${OPENMPI_VERSION}
 LABEL CONDA_VERSION=${CONDA_VERSION}
