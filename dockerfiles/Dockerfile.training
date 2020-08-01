@@ -58,6 +58,7 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
         libnuma-dev &&\
     cd /stage && curl -fSsL ${UCX_URL} | tar xzf - &&\
     cd ${UCX_TARNAME} &&\
+    CFLAGS="-I/usr/include" \
     ./configure \
 	--prefix=/opt/ucx \
         --with-cuda=/usr/local/cuda \
