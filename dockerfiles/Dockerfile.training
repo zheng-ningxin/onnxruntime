@@ -114,6 +114,8 @@ RUN pip install torch==${PYTORCH_VERSION}
 RUN cd /stage && git clone https://github.com/microsoft/onnxruntime.git &&\
     cd onnxruntime &&\
     git checkout orttraining_rc2 &&\
+    cp ThirdPartyNotices.txt /stage/ThirdPartyNotices.txt &&\
+    cp dockerfiles/LICENSE-IMAGE.txt /stage/LICENSE-IMAGE.txt &&\
     python tools/ci_build/build.py \
         --cmake_extra_defines \
             ONNXRUNTIME_VERSION=`cat ./VERSION_NUMBER` \
@@ -188,8 +190,10 @@ LABEL ONNX_VERSION=${ONNX_VERSION}
 LABEL PYTORCH_VERSION=${PYTORCH_VERSION}
 
 # clean\finalize environment
+# note: adds onnxruntime license and third party notices
 RUN conda remove -y cmake ninja &&\
     apt-get purge -y build-essential &&\
     apt-get autoremove -y &&\
     rm -fr /stage
 WORKDIR /workspace
+COPY --from=build /stage/*.txt /workspace
