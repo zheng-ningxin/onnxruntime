@@ -52,9 +52,7 @@ ARG UCX_VERSION
 ARG UCX_TARNAME=ucx-$UCX_VERSION
 ARG UCX_URL=https://github.com/openucx/ucx/releases/download/v${UCX_VERSION}/${UCX_TARNAME}.tar.gz
 RUN apt-get -y update && apt-get -y --no-install-recommends install \
-        libibumad-dev \
         libibverbs-dev \
-        librdmacm-dev \
         libnuma-dev &&\
     cd /stage && curl -fSsL ${UCX_URL} | tar xzf - &&\
     cd ${UCX_TARNAME} &&\
@@ -159,10 +157,8 @@ ENV OMPI_MCA_pml=ucx
 RUN apt-get -y update && apt-get -y --no-install-recommends install \
         openssh-server \
         openssh-client \
-        libibumad3 \
-        libibverbs1 \
-        librdmacm1 \
-        libnuma1 &&\
+        libibverbs-dev \
+        libnuma-dev &&\
     ldconfig
 
 # copy conda environment (includes mkl, numpy, mpi4py, pytorch, onnxruntime)
