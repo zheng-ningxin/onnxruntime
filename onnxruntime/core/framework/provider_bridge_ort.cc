@@ -511,7 +511,7 @@ struct ProviderLibrary {
 
 #if defined(_WIN32) && !defined(_OPENMP)
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-#error Unsupported configuration
+#warning Unsupported configuration
 // The following workaround can't be applied in containerized apps (no way to manually load DLLs outside of
 // the packaged app)
 #endif
