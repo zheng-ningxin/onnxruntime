@@ -9,8 +9,6 @@ jobs:
     clean: true
     submodules: recursive
 
-  - template: set-py-packaging-variables-step.yml
-
   - task: CmdLine@2
     inputs:
       script: |
