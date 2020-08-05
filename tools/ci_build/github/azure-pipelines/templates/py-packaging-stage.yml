@@ -88,7 +88,6 @@ stages:
               -t ${{ parameters.docker_image_prefix }}-manylinux-$(python.version) \
               --build-arg BUILD_USER=onnxruntimedev \
               --build-arg BUILD_UID=$(id -u) \
-              --build-arg PYTHON_VERSION=$(python.version) \
               -f Dockerfile.manylinux2010_cpu .
           workingDirectory: $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker
       - task: CmdLine@2
@@ -107,6 +106,7 @@ stages:
                   --config Release \
                   --skip_submodule_sync \
                   --parallel \
+                  --enable_lto \
                   --build_wheel \
                   --use_openmp \
                   --enable_onnx_tests \
