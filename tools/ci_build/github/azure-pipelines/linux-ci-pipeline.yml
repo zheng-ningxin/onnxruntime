@@ -1,9 +1,58 @@
-jobs:
-- template: templates/linux-ci.yml
-  parameters:
-    AgentPool : 'Linux-CPU'
-    JobName: 'Linux_CI_Dev'
-    BuildCommand: 'tools/ci_build/github/linux/run_dockerbuild.sh -o ubuntu16.04 -d cpu -r $(Build.BinariesDirectory) -x "--use_mklml --use_llvm --use_nuphar --use_dnnl --use_tvm --build_wheel --build_java --build_nodejs --enable_language_interop_ops"'
-    DoNugetPack:  'false'
-    ArtifactName: 'drop-linux'
-    TimeoutInMinutes: 180
+- job: Linux_py_Wheels
+  timeoutInMinutes: 180
+  workspace:
+    clean: all
+  pool: Linux-CPU
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+
+  - template: set-py-packaging-variables-step.yml
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        docker build --pull \
+          -t onnxruntime-manylinux \
+          --build-arg BUILD_USER=onnxruntimedev \
+          --build-arg BUILD_UID=$(id -u) \
+          -f Dockerfile.manylinux2010_cpu .
+      workingDirectory: $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker
+  - task: CmdLine@2
+    inputs:
+      script: |
+        docker run --rm \
+          --volume /data/onnx:/data/onnx:ro \
+          --volume $(Build.SourcesDirectory):/onnxruntime_src \
+          --volume $(Build.BinariesDirectory):/build \
+          --volume /data/models:/build/models:ro \
+          -e NIGHTLY_BUILD \
+          -e BUILD_BUILDNUMBER \
+          onnxruntime-manylinux \
+            /opt/python/cp37-cp37m/bin/python3 /onnxruntime_src/tools/ci_build/build.py \
+              --build_dir /build \
+              --config Debug Release \
+              --skip_submodule_sync \
+              --build_shared_lib \
+              --parallel \
+              --build_wheel \
+              --use_openmp \
+              --enable_onnx_tests \
+              --use_mklml --use_llvm --use_nuphar --use_dnnl --use_tvm --build_wheel --build_java --build_nodejs --enable_language_interop_ops
+              --cmake_extra_defines PYTHON_INCLUDE_DIR=/opt/python/cp37-cp37m/include/python3.7m PYTHON_LIBRARY=/usr/lib64/librt.so
+      workingDirectory: $(Build.SourcesDirectory)
+
+  - task: PublishTestResults@2
+    displayName: 'Publish unit test results'
+    inputs:
+      testResultsFiles: '**/*.results.xml'
+      searchFolder: '$(Build.BinariesDirectory)'
+      testRunTitle: 'Unit Test Run'
+    condition: succeededOrFailed()
+
+  - template: component-governance-component-detection-steps.yml
+    parameters:
+      condition: 'succeeded'
+
+  - template: clean-agent-build-directory-step.yml
