@@ -6,3 +6,4 @@ setuptools>=41.4.0
 wheel
 onnx==1.7.0
 sympy
+argparse
