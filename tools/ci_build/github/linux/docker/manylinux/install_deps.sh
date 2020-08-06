@@ -48,7 +48,9 @@ if [[ "$DISTRIBUTOR" = "CentOS" && $SYS_LONG_BIT = "64" ]]; then
 else
   LIBDIR="lib"
 fi
-if [[ $SYS_LONG_BIT = "64" && "$GLIBC_VERSION" -gt "9" ]]; then
+
+cd /tmp/src
+
   echo "Installing azcopy"
   mkdir -p /tmp/azcopy
   GetFile https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy/azcopy.tar.gz
@@ -57,24 +59,24 @@ if [[ $SYS_LONG_BIT = "64" && "$GLIBC_VERSION" -gt "9" ]]; then
   echo "Installing cmake"
   GetFile https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz /tmp/src/cmake-3.18.1-Linux-x86_64.tar.gz
   tar -zxf /tmp/src/cmake-3.18.1-Linux-x86_64.tar.gz --strip=1 -C /usr
+  echo "Installing Ninja"
+  GetFile https://github.com/ninja-build/ninja/archive/v1.10.0.tar.gz /tmp/src/ninja-linux.tar.gz
+  tar -zxf ninja-linux.tar.gz
+  cd ninja-1.10.0
+  cmake -Bbuild-cmake -H.
+  cmake --build build-cmake
+  mv ./build-cmake/ninja /usr/bin
   echo "Installing Node.js"
-  GetFile https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-x64.tar.xz /tmp/src/node-v12.16.3-linux-x64.tar.xz
-  tar -xf /tmp/src/node-v12.16.3-linux-x64.tar.xz --strip=1 -C /usr
-else
-  echo "Installing cmake"
-  GetFile https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1.tar.gz /tmp/src/cmake-3.18.1.tar.gz
-  tar -xf /tmp/src/cmake-3.18.1.tar.gz -C /tmp/src
-  pushd .
-  cd /tmp/src/cmake-3.18.1
-  ./bootstrap --prefix=/usr --parallel=$(getconf _NPROCESSORS_ONLN) --system-bzip2 --system-curl --system-zlib --system-expat
-  make -j$(getconf _NPROCESSORS_ONLN)
-  make install
-  popd
-fi
+  GetFile https://nodejs.org/dist/v12.16.3/node-v12.16.3.tar.xz /tmp/src/node-v12.16.3.tar.xz
+  tar -xf /tmp/src/node-v12.16.3.tar.xz
+  cd node-v12.16.3
+  LDFLAGS=-lrt /opt/python/cp27-cp27m/bin/python configure --ninja
+  LDFLAGS=-lrt make -j$(getconf _NPROCESSORS_ONLN)
+  LDFLAGS=-lrt make install
 
-GetFile https://downloads.gradle-dn.com/distributions/gradle-6.3-bin.zip /tmp/src/gradle-6.3-bin.zip
 cd /tmp/src
-unzip gradle-6.3-bin.zip
+GetFile https://downloads.gradle-dn.com/distributions/gradle-6.3-bin.zip /tmp/src/gradle-6.3-bin.zip
+unzip /tmp/src/gradle-6.3-bin.zip
 mv /tmp/src/gradle-6.3 /usr/local/gradle
 
 

@@ -951,7 +951,7 @@ if (onnxruntime_USE_TVM)
     # wd4456: declaration of X hides previous local declaration
     set(DISABLED_WARNINGS_FOR_TVM "/wd4100" "/wd4244" "/wd4251" "/wd4267" "/wd4275" "/wd4389" "/wd4456")
   else()
-    set(DISABLED_WARNINGS_FOR_TVM "-Wno-error=ignored-qualifiers")
+    set(DISABLED_WARNINGS_FOR_TVM "-Wno-error=ignored-qualifiers" "-Wno-unused-parameter" "-Wno-ignored-qualifiers")
     if(HAS_UNUSED_PARAMETER)
       list(APPEND DISABLED_WARNINGS_FOR_TVM "-Wno-error=unused-parameter")
     endif()

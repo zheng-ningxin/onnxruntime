@@ -415,9 +415,9 @@ if (onnxruntime_USE_NUPHAR)
     message(FATAL_ERROR "onnxruntime_USE_TVM required for onnxruntime_USE_NUPHAR")
   endif()
 
-  if (NOT onnxruntime_USE_LLVM)
-    message(FATAL_ERROR "onnxruntime_USE_LLVM required for onnxruntime_USE_NUPHAR")
-  endif()
+  #if (NOT onnxruntime_USE_LLVM)
+  #  message(FATAL_ERROR "onnxruntime_USE_LLVM required for onnxruntime_USE_NUPHAR")
+  #endif()
 
   include(onnxruntime_nuphar_extern.cmake)
 
