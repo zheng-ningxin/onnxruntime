@@ -9,15 +9,12 @@ jobs:
     clean: true
     submodules: recursive
 
-  - task: CmdLine@2
+  - task: Docker@2
+    displayName: login
     inputs:
-      script: |
-        docker build --pull \
-          -t onnxruntime-manylinux \
-          --build-arg BUILD_USER=onnxruntimedev \
-          --build-arg BUILD_UID=$(id -u) \
-          -f Dockerfile.manylinux2010_cpu .
-      workingDirectory: $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker
+      containerRegistry: onnxruntimeregistry
+      command: login
+      addPipelineData: false
   - task: CmdLine@2
     inputs:
       script: |
@@ -41,7 +38,12 @@ jobs:
               --use_dnnl \
               --cmake_extra_defines PYTHON_INCLUDE_DIR=/opt/python/cp37-cp37m/include/python3.7m PYTHON_LIBRARY=/usr/lib64/librt.so
       workingDirectory: $(Build.SourcesDirectory)
-
+  - task: Docker@2
+    displayName: logout
+    inputs:
+      containerRegistry: onnxruntimeregistry
+      command: logout
+      addPipelineData: false
   - task: PublishTestResults@2
     displayName: 'Publish unit test results'
     inputs:
